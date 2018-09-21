@@ -3,7 +3,7 @@
 
 #include "p2List.h"
 #include "j1Module.h"
-#include "PugiXml\src\pugixml.hpp"
+//#include "PugiXml\src\pugixml.hpp"
 
 // Modules
 class j1Window;
@@ -71,6 +71,7 @@ public:
 
 	pugi::xml_document doc;
 	pugi::xml_node node;
+	pugi::xml_node* moduleNode = nullptr;
 
 private:
 
