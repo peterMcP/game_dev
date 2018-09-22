@@ -231,3 +231,11 @@ bool j1Render::DrawCircle(int x, int y, int radius, Uint8 r, Uint8 g, Uint8 b, U
 
 	return ret;
 }
+
+bool j1Render::Load(pugi::xml_node& savegame)
+{
+	camera.x = savegame.child("camera").attribute("x").as_int(0);
+	camera.y = savegame.child("camera").attribute("y").as_int(0);
+
+	return true;
+}

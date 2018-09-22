@@ -49,6 +49,13 @@ public:
 	// will one execute by the very end of the frame
 	// Load / Save
 
+	bool Load();
+	bool Save();
+
+	bool iHaveToSave = false;
+	bool iHaveToLoad = false;
+
+
 private:
 
 	// Load config file
@@ -87,6 +94,8 @@ private:
 	pugi::xml_document	config_file;
 	pugi::xml_node		config;
 	pugi::xml_node		app_config;
+	pugi::xml_document savegame_file;
+	pugi::xml_node savegame;
 	int					argc;
 	char**				args;
 

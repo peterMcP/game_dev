@@ -152,6 +152,16 @@ void j1App::PrepareUpdate()
 void j1App::FinishUpdate()
 {
 	// TODO 1: This is a good place to call load / Save functions
+	
+	if (iHaveToLoad && iHaveToSave)
+	{
+		Save();
+		Load();
+		// remember to turn false the bools
+	}
+
+	if (iHaveToLoad) Load();
+	if (iHaveToSave) Save();
 
 }
 
@@ -269,5 +279,59 @@ const char* j1App::GetOrganization() const
 // TODO 5: Create a method to actually load an xml file
 // then call all the modules to load themselves
 
+bool j1App::Load()
+{
+	bool ret = true;
+
+	// checks the condition and loads the savegame document
+	if (iHaveToLoad)
+	{
+		pugi::xml_parse_result result = savegame_file.load_file("savegame.xml");
+
+		if (result == NULL)
+		{
+			LOG("Could not load map xml file savegame.xml. pugi error: %s", result.description());
+			ret = false;
+		}
+		else
+		{
+			savegame = savegame_file.child("save");
+
+			LOG("savegame.xml document found and loaded");
+
+
+		}
+
+		iHaveToLoad = false;
+	}
+
+	// if everything wents well, iterate all the modules and send the specific node of savegame.xml document
+	if (ret == true)
+	{
+		p2List_item<j1Module*>* item;
+		item = modules.start;
+
+		while (item != NULL && ret == true)
+		{
+			ret = item->data->Load(savegame.child(item->data->name.GetString()));
+			item = item->next;
+		}
+	}
+
+
+	return ret;
+}
+
 // TODO 7: Create a method to save the current state
 
+bool j1App::Save()
+{
+	bool ret = true;
+
+	if (iHaveToSave)
+	{
+		iHaveToSave = false;
+	}
+
+	return ret;
+}
