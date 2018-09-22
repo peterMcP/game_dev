@@ -24,7 +24,7 @@ public:
 	}
 
 	// Called before render is available
-	virtual bool Awake()//pugi::xml_node* moduleNode = nullptr)
+	virtual bool Awake(pugi::xml_node&)
 	{
 		return true;
 	}
@@ -63,7 +63,6 @@ public:
 
 	p2SString	name;
 	bool		active;
-	//pugi::xml_node* node = nullptr;
 
 };
 

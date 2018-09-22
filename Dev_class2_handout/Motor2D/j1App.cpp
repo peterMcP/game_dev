@@ -77,9 +77,9 @@ bool j1App::Awake()
 
 	if (!result)
 	{
-		LOG("config.xml parsed with errors, attr value:",doc.child("node").attribute("attr").value());
-		LOG("error description: ", result.description());
-		LOG("error offset: ", result.offset);
+		LOG("config.xml parsed with errors, attr value: &i",doc.child("node").attribute("attr").value());
+		LOG("error description: %s", result.description());
+		LOG("error offset: &i ", result.offset);
 
 		ret = false;
 	}
@@ -98,22 +98,7 @@ bool j1App::Awake()
 		// If the section with the module name exist in config.xml, fill the pointer with the address of a valid xml_node
 		// that can be used to read all variables from that section. Send nullptr if the section does not exist in config.xml
 
-		//pugi::xml_node* 
-		//moduleNode = &doc.child(item->data->name.GetString());
-
-		/*if (!moduleNode->empty())
-		{
-			// send valid adress pointer
-		}
-		else
-		{
-			// send nullptr pointer
-			moduleNode = nullptr;
-		}*/
-
-
-
-		ret = item->data->Awake();//moduleNode);
+		ret = item->data->Awake(node.child(item->data->name.GetString()));
 		item = item->next;
 	}
 

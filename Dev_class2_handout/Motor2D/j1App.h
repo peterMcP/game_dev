@@ -71,7 +71,6 @@ public:
 
 	pugi::xml_document doc;
 	pugi::xml_node node;
-	pugi::xml_node* moduleNode = nullptr;
 
 private:
 
