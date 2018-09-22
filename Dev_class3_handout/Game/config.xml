@@ -18,4 +18,8 @@
     <fullscreen_window value="false"/>
   </window>
 
+  <audio>
+    <volume music= "64" fx ="64"/>
+  </audio>
+
 </config>

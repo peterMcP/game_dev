@@ -51,6 +51,11 @@ bool j1Audio::Awake(pugi::xml_node& config)
 		ret = true;
 	}
 
+	// music and fx volume
+	Mix_VolumeMusic(config.child("volume").attribute("music").as_int(128));
+	//Mix_VolumeChunk(chunk,config.child("volume").attribute("fx").as_int(128));
+
+
 	return ret;
 }
 
