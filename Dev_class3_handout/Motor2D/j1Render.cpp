@@ -90,8 +90,28 @@ bool j1Render::CleanUp()
 // TODO 6: Create a method to load the state
 // for now it will be camera's x and y
 
+bool j1Render::Load(pugi::xml_node& savegame)
+{
+	camera.x = savegame.child("camera").attribute("x").as_int(0);
+	camera.y = savegame.child("camera").attribute("y").as_int(0);
+
+	return true;
+}
+
 // TODO 8: Create a method to save the state of the renderer
 // using append_child and append_attribute
+
+bool j1Render::Save(pugi::xml_node& node)
+{
+	bool ret = true;
+
+	pugi::xml_node renderNode = node.append_child("camera");
+	
+	renderNode.append_attribute("x") = camera.x;
+	renderNode.append_attribute("y").set_value(camera.y); // = camera.y;
+	
+	return ret;
+}
 
 void j1Render::SetBackgroundColor(SDL_Color color)
 {
@@ -232,10 +252,3 @@ bool j1Render::DrawCircle(int x, int y, int radius, Uint8 r, Uint8 g, Uint8 b, U
 	return ret;
 }
 
-bool j1Render::Load(pugi::xml_node& savegame)
-{
-	camera.x = savegame.child("camera").attribute("x").as_int(0);
-	camera.y = savegame.child("camera").attribute("y").as_int(0);
-
-	return true;
-}

@@ -20,6 +20,9 @@ public:
 	// Called before render is available
 	bool Awake(pugi::xml_node&);
 
+	// for increase/decrease volume input
+	bool Update(float dt);
+
 	// Called before quitting
 	bool CleanUp();
 
@@ -32,10 +35,22 @@ public:
 	// Play a previously loaded WAV
 	bool PlayFx(unsigned int fx, int repeat = 0);
 
+	// load and save volume configuration
+
+	bool Load(pugi::xml_node&);
+	bool Save(pugi::xml_node&);
+
+	// control music volume
+
+	void volumeControl(int vol);
+
 private:
 
 	_Mix_Music*			music;
 	p2List<Mix_Chunk*>	fx;
+
+	// store volume
+	uint volume = 128; // default max volume
 
 };
 

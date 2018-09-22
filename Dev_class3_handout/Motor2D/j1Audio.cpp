@@ -4,6 +4,9 @@
 #include "j1FileSystem.h"
 #include "j1Audio.h"
 
+// for manage keyboard input
+#include "j1Input.h"
+
 #include "SDL/include/SDL.h"
 #include "SDL_mixer\include\SDL_mixer.h"
 #pragma comment( lib, "SDL_mixer/libx86/SDL2_mixer.lib" )
@@ -51,8 +54,11 @@ bool j1Audio::Awake(pugi::xml_node& config)
 		ret = true;
 	}
 
-	// music and fx volume
+	// music and fx volume --------------
+	// load stored volume value
 	Mix_VolumeMusic(config.child("volume").attribute("music").as_int(128));
+	// sets temp volume var to previosly loaded one
+	volume = config.child("volume").attribute("music").as_int(128);
 	//Mix_VolumeChunk(chunk,config.child("volume").attribute("fx").as_int(128));
 
 
@@ -174,6 +180,72 @@ bool j1Audio::PlayFx(unsigned int id, int repeat)
 	{
 		Mix_PlayChannel(-1, fx[id - 1], repeat);
 	}
+
+	return ret;
+}
+
+bool j1Audio::Load(pugi::xml_node& savegame)
+{
+	bool ret = true;
+
+	// loads volume from savegame.xml
+	volume = savegame.child("volume").attribute("music").as_int(128);
+
+	// sets volume in sdl_mix
+	Mix_VolumeMusic(volume);
+
+	return ret;
+}
+
+bool j1Audio::Save(pugi::xml_node& savegame)
+{
+	bool ret = true;
+
+	// stores to core config.xml ---------------------------------------------------
+	pugi::xml_document config_file;
+	pugi::xml_parse_result result = config_file.load_file("config.xml");
+
+	pugi::xml_node coreNode = config_file.child("config").child("audio").child("volume");
+
+	pugi::xml_attribute attr = coreNode.attribute("music");
+	attr.set_value(volume);
+
+	config_file.save_file("config.xml");
+	// ------------------------------------------------------------------------------
+
+	// stores to savegame.xml -------------------------------------------------------
+	pugi::xml_node savegameNode = savegame.append_child("volume");
+
+	savegameNode.append_attribute("music") = volume;
+	// ------------------------------------------------------------------------------
+
+	return ret;
+}
+
+void j1Audio::volumeControl(int vol)
+{
+
+	volume += vol;
+	Mix_VolumeMusic(volume);
+
+}
+
+bool j1Audio::Update(float dt)
+{
+	bool ret = true;
+
+	if (App->input->GetKey(SDL_SCANCODE_KP_PLUS) == KEY_DOWN)
+	{
+		if (volume < MIX_MAX_VOLUME)
+			volumeControl(1);
+	}
+
+	if (App->input->GetKey(SDL_SCANCODE_KP_MINUS) == KEY_DOWN)
+	{
+		if (volume > 0) volumeControl(-1);
+	}
+
+
 
 	return ret;
 }

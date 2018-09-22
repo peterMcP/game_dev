@@ -40,6 +40,7 @@ public:
 	void SetBackgroundColor(SDL_Color color);
 
 	bool Load(pugi::xml_node&);
+	bool Save(pugi::xml_node&);
 
 public:
 

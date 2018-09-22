@@ -68,6 +68,10 @@ bool j1App::Awake()
 	title.create(app_config.child("title").child_value());
 	organization.create(app_config.child("organization").child_value());
 
+	// load camera coords. at awake - test -
+	iHaveToLoad = true;
+	//Load();
+
 	if(ret == true)
 	{
 		p2List_item<j1Module*>* item;
@@ -330,6 +334,27 @@ bool j1App::Save()
 
 	if (iHaveToSave)
 	{
+		pugi::xml_document doc;
+		pugi::xml_node saveNode;
+
+		if (ret == true)
+		{
+			p2List_item<j1Module*>* item;
+			item = modules.start;
+
+			// create root node
+			pugi::xml_node node = doc.append_child("save");
+
+			while (item != NULL && ret == true)
+			{
+				pugi::xml_node newNode = node.append_child(item->data->name.GetString());
+				ret = item->data->Save(newNode);//node.child(item->data->name.GetString()));
+				item = item->next;
+			}
+
+			doc.save_file("savegame.xml");
+		}
+		
 		iHaveToSave = false;
 	}
 
