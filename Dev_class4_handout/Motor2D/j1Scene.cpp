@@ -67,9 +67,9 @@ bool j1Scene::Update(float dt)
 	// TODO 7: Set the window title like
 	// "Map:%dx%d Tiles:%dx%d Tilesets:%d"
 	p2SString title("Map:%dx%d Tiles:%dx%d Tilesets:%d",
-					0, 0,
-					0, 0,
-					0);
+					App->map->mapInfo.width, App->map->mapInfo.height,
+					App->map->mapInfo.tilewidth, App->map->mapInfo.tileheight,
+					App->map->tilesetCounter);
 
 	App->win->SetTitle(title.GetString());
 	return true;
