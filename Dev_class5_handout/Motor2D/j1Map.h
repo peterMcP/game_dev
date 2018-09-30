@@ -21,11 +21,15 @@ struct MapLayer
 		if (tiles != nullptr) delete tiles;
 	}
 
+	inline uint Get(int x, int y) const
+	{
+		return tiles[width * y + x];
+	}
 
 };
 
 	// TODO 6: Short function to get the value of x,y
-
+	//inline uint Get(int x, int y) const;
 
 
 // ----------------------------------------------------
@@ -47,18 +51,21 @@ struct TileSet
 	int					num_tiles_height;
 	int					offset_x;
 	int					offset_y;
+	//bool				embeddedTsx = true;
 };
 
 enum MapTypes
 {
 	MAPTYPE_UNKNOWN = 0,
 	MAPTYPE_ORTHOGONAL,
+	MAPTYPE_HEXAGONAL,
 	MAPTYPE_ISOMETRIC,
 	MAPTYPE_STAGGERED
 };
 // ----------------------------------------------------
 struct MapData
 {
+	//p2SString			file_name;
 	int					width;
 	int					height;
 	int					tile_width;
@@ -90,16 +97,18 @@ public:
 	bool CleanUp();
 
 	// Load new map
-	bool Load(const char* path);
+	bool Load();//const char* path);
 
 	// TODO 8: Create a method that translates x,y coordinates from map positions to world positions
 	iPoint MapToWorld(int x, int y) const;
 
+	//inline uint Get(int x, int y) const;
+
 private:
 
 	bool LoadMap();
-	bool LoadTilesetDetails(pugi::xml_node& tileset_node, TileSet* set);
-	bool LoadTilesetImage(pugi::xml_node& tileset_node, TileSet* set);
+	bool LoadTilesetDetails(pugi::xml_node& tileset_node, TileSet* set, pugi::xml_node& tsx_node);
+	bool LoadTilesetImage(pugi::xml_node& tileset_node, TileSet* set, pugi::xml_node& tsx_node);
 	// TODO 3: Create a method that loads a single laye
 	bool LoadLayer(pugi::xml_node& node, MapLayer* layer);
 
@@ -110,7 +119,9 @@ public:
 private:
 
 	pugi::xml_document	map_file;
+	pugi::xml_document  tsx_file;
 	p2SString			folder;
+	p2SString			map_filename;
 	bool				map_loaded;
 };
 

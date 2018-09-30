@@ -22,6 +22,7 @@ bool j1Map::Awake(pugi::xml_node& config)
 	bool ret = true;
 
 	folder.create(config.child("folder").child_value());
+	map_filename.create(config.child("name").attribute("name").as_string());
 
 	return ret;
 }
@@ -32,8 +33,38 @@ void j1Map::Draw()
 		return;
 
 	// TODO 5: Prepare the loop to draw all tilesets + Blit
+	p2List_item<TileSet*>* tilesetItem = data.tilesets.start;
+	p2List_item<MapLayer*>* layerItem = data.layers.start;
 
-		// TODO 9: Complete the draw function
+	while (tilesetItem != NULL)
+	{
+		while (layerItem != NULL)
+		{
+			for (int j = 0; j < layerItem->data->height; ++j)
+			{
+				for (int i = 0; i < layerItem->data->width; ++i)
+				{
+					// get tile id
+					int tileid = layerItem->data->Get(i, j);
+
+					if (tileid != 0)
+					{
+						// get tile rect
+						SDL_Rect printRect = tilesetItem->data->GetTileRect(tileid);
+						iPoint printCoords = MapToWorld(i, j);
+
+						App->render->Blit(tilesetItem->data->texture, printCoords.x, printCoords.y, &printRect);//, 1.0f, 45.0);
+					}
+				}
+			}
+
+			layerItem = layerItem->next;
+		}
+		
+	tilesetItem = tilesetItem->next;
+	}
+
+	// TODO 9: Complete the draw function
 
 }
 
@@ -98,16 +129,16 @@ bool j1Map::CleanUp()
 }
 
 // Load new map
-bool j1Map::Load(const char* file_name)
+bool j1Map::Load()//const char* file_name)
 {
 	bool ret = true;
-	p2SString tmp("%s%s", folder.GetString(), file_name);
+	p2SString tmp("%s%s", folder.GetString(), map_filename.GetString());//file_name);
 
 	pugi::xml_parse_result result = map_file.load_file(tmp.GetString());
 
 	if(result == NULL)
 	{
-		LOG("Could not load map xml file %s. pugi error: %s", file_name, result.description());
+		LOG("Could not load map xml file %s. pugi error: %s", map_filename.GetString(), result.description());
 		ret = false;
 	}
 
@@ -119,18 +150,55 @@ bool j1Map::Load(const char* file_name)
 
 	// Load all tilesets info ----------------------------------------------
 	pugi::xml_node tileset;
+
+	// check if we have a "source" attribute on tileset element, if yes, create new document etc
+	// if not continue normal = terrain tsx file is embedded on tmx
+
+	pugi::xml_node tsxNode;
+
+	
 	for(tileset = map_file.child("map").child("tileset"); tileset && ret; tileset = tileset.next_sibling("tileset"))
 	{
 		TileSet* set = new TileSet();
 
+		// check source attribute
+		if (map_file.child("map").child("tileset").attribute("source"))
+		{
+			p2SString sourceTmp("%s%s", folder.GetString(), map_file.child("map").child("tileset").attribute("source").as_string());
+
+			pugi::xml_parse_result result = tsx_file.load_file(sourceTmp.GetString());
+
+			if (result == NULL)
+			{
+				LOG("Could not load tsx file %s. pugi error: %s", sourceTmp.GetString(), result.description());
+				ret = false;
+			}
+			else
+			{
+				// assigns file doc to node
+				tsxNode = tsx_file.child("tileset");
+				LOG("tsx source attribute found and loaded: %s", map_file.child("map").child("tileset").attribute("source").as_string());
+			}
+		}
+		else
+		{
+			LOG("Tsx embedded on tmx");
+			if(!tsxNode.empty())
+			{ }
+		}
+
+
 		if(ret == true)
 		{
-			ret = LoadTilesetDetails(tileset, set);
+			ret = LoadTilesetDetails(tileset, set, tsxNode);
+
+			// check source attribute
+
 		}
 
 		if(ret == true)
 		{
-			ret = LoadTilesetImage(tileset, set);
+			ret = LoadTilesetImage(tileset, set, tsxNode);
 		}
 
 		data.tilesets.add(set);
@@ -138,11 +206,25 @@ bool j1Map::Load(const char* file_name)
 
 	// TODO 4: Iterate all layers and load each of them
 	// Load layer info ----------------------------------------------
+	pugi::xml_node layer;
+
+	for (layer = map_file.child("map").child("layer"); layer && ret; layer = layer.next_sibling("layer"))
+	{
+		MapLayer* l = new MapLayer();
+
+		if (ret == true)
+		{
+			ret = LoadLayer(layer,l);
+		}
+
+		data.layers.add(l);
+	}
+
 
 
 	if(ret == true)
 	{
-		LOG("Successfully parsed map XML file: %s", file_name);
+		LOG("Successfully parsed map XML file: %s", map_filename.GetString());
 		LOG("width: %d height: %d", data.width, data.height);
 		LOG("tile_width: %d tile_height: %d", data.tile_width, data.tile_height);
 
@@ -159,7 +241,7 @@ bool j1Map::Load(const char* file_name)
 
 		// TODO 4: Add info here about your loaded layers
 		// Adapt this vcode with your own variables
-		/*
+		
 		p2List_item<MapLayer*>* item_layer = data.layers.start;
 		while(item_layer != NULL)
 		{
@@ -168,7 +250,7 @@ bool j1Map::Load(const char* file_name)
 			LOG("name: %s", l->name.GetString());
 			LOG("tile width: %d tile height: %d", l->width, l->height);
 			item_layer = item_layer->next;
-		}*/
+		}
 	}
 
 	map_loaded = ret;
@@ -225,6 +307,10 @@ bool j1Map::LoadMap()
 		{
 			data.type = MAPTYPE_ORTHOGONAL;
 		}
+		else if (orientation == "hexagonal")
+		{
+			data.type = MAPTYPE_HEXAGONAL;
+		}
 		else if(orientation == "isometric")
 		{
 			data.type = MAPTYPE_ISOMETRIC;
@@ -242,16 +328,30 @@ bool j1Map::LoadMap()
 	return ret;
 }
 
-bool j1Map::LoadTilesetDetails(pugi::xml_node& tileset_node, TileSet* set)
+bool j1Map::LoadTilesetDetails(pugi::xml_node& tileset_node, TileSet* set,pugi::xml_node& tsx_node)
 {
 	bool ret = true;
-	set->name.create(tileset_node.attribute("name").as_string());
-	set->firstgid = tileset_node.attribute("firstgid").as_int();
-	set->tile_width = tileset_node.attribute("tilewidth").as_int();
-	set->tile_height = tileset_node.attribute("tileheight").as_int();
-	set->margin = tileset_node.attribute("margin").as_int();
-	set->spacing = tileset_node.attribute("spacing").as_int();
-	pugi::xml_node offset = tileset_node.child("tileoffset");
+
+	pugi::xml_node copyNode = tileset_node;
+	
+	// firstgid is shared on same conditions, tsx file or embedded tsx
+	if (!tsx_node.empty())
+	{
+		set->firstgid = tileset_node.attribute("firstgid").as_int();
+		copyNode = tsx_node;
+	}
+	else
+	{
+		set->firstgid = tileset_node.attribute("firstgid").as_int();
+	}
+
+	set->name.create(copyNode.attribute("name").as_string());
+	//set->firstgid = tileset_node.attribute("firstgid").as_int();
+	set->tile_width = copyNode.attribute("tilewidth").as_int();
+	set->tile_height = copyNode.attribute("tileheight").as_int();
+	set->margin = copyNode.attribute("margin").as_int();
+	set->spacing = copyNode.attribute("spacing").as_int();
+	pugi::xml_node offset = copyNode.child("tileoffset");
 
 	if(offset != NULL)
 	{
@@ -267,10 +367,14 @@ bool j1Map::LoadTilesetDetails(pugi::xml_node& tileset_node, TileSet* set)
 	return ret;
 }
 
-bool j1Map::LoadTilesetImage(pugi::xml_node& tileset_node, TileSet* set)
+bool j1Map::LoadTilesetImage(pugi::xml_node& tileset_node, TileSet* set, pugi::xml_node& tsx_node)
 {
 	bool ret = true;
-	pugi::xml_node image = tileset_node.child("image");
+
+	pugi::xml_node image;
+
+	if(!tsx_node.empty())  image = tsx_node.child("image");
+	else  image = tileset_node.child("image");
 
 	if(image == NULL)
 	{
@@ -306,19 +410,26 @@ bool j1Map::LoadTilesetImage(pugi::xml_node& tileset_node, TileSet* set)
 // TODO 3: Create the definition for a function that loads a single layer
 bool j1Map::LoadLayer(pugi::xml_node& node, MapLayer* layer)
 {
+	bool ret = true;
+
 	layer->name = node.attribute("name").as_string();
 	layer->width = node.attribute("width").as_uint(0);
 	layer->height = node.attribute("height").as_uint();
 	
 	layer->tiles = new uint[layer->width*layer->height];
 	
-	// fill all the date in 1 cycle, fill with 0s
+	// fill all the data in 1 cycle, fill with 0s
 	memset(layer->tiles, 0, layer->width*layer->height * sizeof(uint));
 
-	uint i = 0;
-	for (node = node.child("tile"); node; node = node.next_sibling("tile"))
+	int i = 0;
+
+	pugi::xml_node tile = node.child("data");
+
+	for (tile = tile.child("tile"); tile; tile = tile.next_sibling("tile"))
 	{
-		layer->tiles[i] = node.attribute("gid").as_uint(0);
+		layer->tiles[i] = tile.attribute("gid").as_uint(0);
 		++i;
 	}
+
+	return ret;
 }

@@ -23,6 +23,7 @@
   </file_system>
 
   <map>
+	<name name="desert.tmx" />
     <folder>maps/</folder>
   </map>
 
