@@ -14,13 +14,13 @@ void main()
 	b.Print();
 	d.Print();
 	
-	if (d == c)
+	if (a == c)
 	{
 		printf_s("d and c strings are equals \n");
 	}
 	else
 	{
-		printf_s("d and c strings are not equals");
+		printf_s("d and c strings are not equals \n");
 	}
 
 	a = "bye";

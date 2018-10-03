@@ -59,7 +59,10 @@ public:
 
 	bool operator == (const string& string) const
 	{
-		return strcmp(string.text, text) == 0; //0 -> the contents of both strings are equal
+		if (string.text != nullptr && text != nullptr)
+			return strcmp(string.text, text) == 0; //0 -> the contents of both strings are equal
+		else
+			return false;
 	}
 
 	// print test
