@@ -7,25 +7,27 @@ void main()
 	string b(a);
 	string c("hello");
 
-	b = c;
+	string d(c);
 
-	c.print();
+	b = a;
+
+	b.Print();
+	d.Print();
 	
-	if (b == c)
+	if (d == c)
 	{
-		std::cout << "b and c strings are equals" << std::endl;
+		printf_s("d and c strings are equals \n");
 	}
 	else
 	{
-		std::cout << "b and c strings are not equals" << std::endl;
+		printf_s("d and c strings are not equals");
 	}
 
-	c = "bye";
+	a = "bye";
 
-	c.print();
+	a.Print();
 
-	b.print();
-
+	//c.Print();
 
 	std::cin.get();
 }
