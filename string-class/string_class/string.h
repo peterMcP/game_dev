@@ -65,10 +65,8 @@ public:
 			return false;
 	}
 
-	bool operator +=(const string& str) 
+	string operator +=(const string& str)
 	{
-		bool ret = true;
-
 		if (str.text != nullptr && text != nullptr)
 		{
 			unsigned int tempSize = strlen(text) + strlen(str.text) + 1;
@@ -80,10 +78,8 @@ public:
 
 			delete[] tempString;
 		}
-		else
-			ret = false;
 
-		return ret;	
+		return *this;
 	}
 
 	// print test
