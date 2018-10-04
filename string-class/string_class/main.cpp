@@ -27,7 +27,9 @@ void main()
 
 	a.Print();
 
-	//c.Print();
+	a += c;
+
+	a.Print();
 
 	std::cin.get();
 }

@@ -65,6 +65,28 @@ public:
 			return false;
 	}
 
+	bool operator +=(const string& str)
+	{
+		bool ret = true;
+
+		if (str.text != nullptr && text != nullptr)
+		{
+			unsigned int tempSize = size + str.size - 1; // only needs 1 null termination
+			char* newString = new char[tempSize];
+
+			strcpy_s(newString, tempSize, text);
+			strcat_s(newString, tempSize, str.text);
+
+			delete[] text;
+			text = newString;
+		}
+		else
+			ret = false;
+
+		return ret;
+			
+	}
+
 	// print test
 	void Print() const
 	{
