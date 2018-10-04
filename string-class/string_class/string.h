@@ -47,10 +47,13 @@ public:
 	// methods
 	string operator = (const string& string)
 	{
-		if (string.size > 0)
+		if (string.text != nullptr)
 		{
-			delete[] text;
-			AllocMem(string.size);
+			if (string.size > size)
+			{
+				delete[] text;
+				AllocMem(string.size);
+			}
 			strcpy_s(text, size, string.text);
 		}
 

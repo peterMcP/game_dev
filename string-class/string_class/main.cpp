@@ -33,5 +33,14 @@ void main()
 
 	a.Print();
 
+	string e = "hey";
+	string f = "byee";
+
+	f.Print();
+
+	f = e;
+
+	f.Print();
+
 	std::cin.get();
 }
