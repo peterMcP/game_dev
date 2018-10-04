@@ -4,6 +4,7 @@ string b(a);
 string c("hello");
 if (a == "...") -> bool
 b = "bye";
+add operator +=
 */
 
 #ifndef _STRING
@@ -31,8 +32,7 @@ public:
 
 	string(const char* string)
 	{
-		size = strlen(string)+1; // null terminated
-		text = new char[size];
+		AllocMem(strlen(string) + 1); // null terminated
 		strcpy_s(text, size, string);
 	}
 
