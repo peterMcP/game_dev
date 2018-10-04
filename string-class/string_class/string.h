@@ -65,26 +65,25 @@ public:
 			return false;
 	}
 
-	bool operator +=(const string& str)
+	bool operator +=(const string& str) 
 	{
 		bool ret = true;
 
 		if (str.text != nullptr && text != nullptr)
 		{
-			unsigned int tempSize = size + str.size - 1; // only needs 1 null termination
-			char* newString = new char[tempSize];
+			unsigned int tempSize = strlen(text) + strlen(str.text) + 1;
+			char* tempString = text;
+			AllocMem(tempSize);
 
-			strcpy_s(newString, tempSize, text);
-			strcat_s(newString, tempSize, str.text);
+			strcpy_s(text, size, tempString);
+			strcat_s(text, size, str.text);
 
-			delete[] text;
-			text = newString;
+			delete[] tempString;
 		}
 		else
 			ret = false;
 
-		return ret;
-			
+		return ret;	
 	}
 
 	// print test

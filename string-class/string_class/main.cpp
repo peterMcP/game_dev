@@ -29,6 +29,8 @@ void main()
 
 	a += c;
 
+	a += "peter";
+
 	a.Print();
 
 	std::cin.get();
