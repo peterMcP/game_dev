@@ -32,8 +32,44 @@ void j1Map::Draw()
 		return;
 
 	// TODO 5(old): Prepare the loop to draw all tilesets + Blit
-	MapLayer* layer = data.layers.start->data; // for now we just use the first layer and tileset
-	TileSet* tileset = data.tilesets.start->data;
+	//MapLayer* layer = data.layers.start->data; // for now we just use the first layer and tileset
+	//TileSet* tileset = data.tilesets.start->data;
+	if (map_loaded == false)
+		return;
+
+	// TODO 5: Prepare the loop to draw all tilesets + Blit
+	p2List_item<TileSet*>* tilesetItem = data.tilesets.start;
+	p2List_item<MapLayer*>* layerItem = data.layers.start;
+
+	while (tilesetItem != NULL)
+	{
+		while (layerItem != NULL)
+		{
+			for (int j = 0; j < layerItem->data->height; ++j)
+			{
+				for (int i = 0; i < layerItem->data->width; ++i)
+				{
+					// get tile id
+					int tileid = layerItem->data->Get(i, j);
+
+					if (tileid != 0)
+					{
+						// get tile rect
+						SDL_Rect printRect = tilesetItem->data->GetTileRect(tileid);
+						iPoint printCoords = MapToWorld(i, j);
+
+						App->render->Blit(tilesetItem->data->texture, printCoords.x, printCoords.y, &printRect);//, 1.0f, 45.0);
+					}
+				}
+			}
+
+			layerItem = layerItem->next;
+		}
+
+		tilesetItem = tilesetItem->next;
+	}
+
+	// TODO 9: Complete the draw function
 
 	// TODO 10(old): Complete the draw function
 }
@@ -43,7 +79,22 @@ iPoint j1Map::MapToWorld(int x, int y) const
 	iPoint ret(0,0);
 	// TODO 8(old): Create a method that translates x,y coordinates from map positions to world positions
 
+	switch (data.type)
+	{
+	case MapTypes::MAPTYPE_ORTHOGONAL:
+		ret.x = x * data.tile_width;
+		ret.y = y * data.tile_height;
+		break;
+	case MapTypes::MAPTYPE_ISOMETRIC:
+		ret.x = (x - y)*data.tile_width * 0.5f;
+		ret.y = (x + y)*data.tile_height * 0.5f;
+		break;
+	}
 	// TODO 1: Add isometric map to world coordinates
+
+	
+
+
 	return ret;
 }
 
@@ -51,7 +102,28 @@ iPoint j1Map::MapToWorld(int x, int y) const
 iPoint j1Map::WorldToMap(int x, int y) const
 {
 	iPoint ret(0,0);
+	switch (data.type)
+	{
+	case MapTypes::MAPTYPE_ORTHOGONAL: 
+		ret.x = x / data.tile_width;
+		ret.y = y / data.tile_height;
+		break;
+
+	case MapTypes::MAPTYPE_ISOMETRIC:
+
+		//ret.x = //Xp/half_w+Yt = Xt
+		//ret.y = // Yp/half_h-Xt = Yt
+
+		break;
+	
+	}
 	// TODO 2: Add orthographic world to map coordinates
+	/*iPoint ret;
+
+	ret.x = x * data.tile_width;
+	ret.y = y * data.tile_height;
+
+	return ret;*/
 
 	// TODO 3: Add the case for isometric maps to WorldToMap
 	return ret;
@@ -59,8 +131,17 @@ iPoint j1Map::WorldToMap(int x, int y) const
 
 SDL_Rect TileSet::GetTileRect(int id) const
 {
-	SDL_Rect rect = {0, 0, 0, 0};
+	
 	// TODO 7(old): Create a method that receives a tile id and returns it's Rect
+	int relative_id = id - firstgid;
+	SDL_Rect rect;
+	rect.w = tile_width;
+	rect.h = tile_height;
+	rect.x = margin + ((rect.w + spacing) * (relative_id % num_tiles_width));
+	rect.y = margin + ((rect.h + spacing) * (relative_id / num_tiles_width));
+	return rect;
+
+
 	return rect;
 }
 
@@ -103,7 +184,7 @@ bool j1Map::Load(const char* file_name)
 	bool ret = true;
 	p2SString tmp("%s%s", folder.GetString(), file_name);
 
-	pugi::xml_parse_result result = map_file.load_file(file_name);
+	pugi::xml_parse_result result = map_file.load_file(tmp.GetString());
 
 	if(result == NULL)
 	{
