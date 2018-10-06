@@ -102,30 +102,25 @@ iPoint j1Map::MapToWorld(int x, int y) const
 iPoint j1Map::WorldToMap(int x, int y) const
 {
 	iPoint ret(0,0);
+	// TODO 2: Add orthographic world to map coordinates
 	switch (data.type)
 	{
 	case MapTypes::MAPTYPE_ORTHOGONAL: 
+
 		ret.x = x / data.tile_width;
 		ret.y = y / data.tile_height;
-		break;
 
+		break;
+	// TODO 3: Add the case for isometric maps to WorldToMap
 	case MapTypes::MAPTYPE_ISOMETRIC:
 
-		//ret.x = //Xp/half_w+Yt = Xt
-		//ret.y = // Yp/half_h-Xt = Yt
+		ret.x = -1 + (x / (data.tile_width * 0.5f) + y / (data.tile_height * 0.5f)) * 0.5f;
+		ret.y = ((y / (data.tile_height * 0.5f)) - x / (data.tile_width * 0.5f))* 0.5f;
 
 		break;
 	
 	}
-	// TODO 2: Add orthographic world to map coordinates
-	/*iPoint ret;
-
-	ret.x = x * data.tile_width;
-	ret.y = y * data.tile_height;
-
-	return ret;*/
-
-	// TODO 3: Add the case for isometric maps to WorldToMap
+	
 	return ret;
 }
 
@@ -141,8 +136,6 @@ SDL_Rect TileSet::GetTileRect(int id) const
 	rect.y = margin + ((rect.h + spacing) * (relative_id / num_tiles_width));
 	return rect;
 
-
-	return rect;
 }
 
 // Called before quitting
