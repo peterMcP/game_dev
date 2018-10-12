@@ -15,12 +15,12 @@ struct Properties
 {
 	bool draw = true;
 	bool navigation = true;
+	int testValue = 0;
 
 	inline bool GetDraw() const
 	{
 		return draw;
 	}
-
 };
 
 // ----------------------------------------------------
@@ -84,6 +84,8 @@ struct MapData
 	MapTypes			type;
 	p2List<TileSet*>	tilesets;
 	p2List<MapLayer*>	layers;
+
+	Properties properties;
 };
 
 // ----------------------------------------------------

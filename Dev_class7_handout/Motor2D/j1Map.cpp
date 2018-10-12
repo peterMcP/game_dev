@@ -184,9 +184,9 @@ bool j1Map::CleanUp()
 bool j1Map::Load(const char* file_name)
 {
 	bool ret = true;
-	p2SString tmp("maps\\%s", folder.GetString(), file_name);
+	p2SString tmp("%s%s", folder.GetString(), file_name);
 
-	pugi::xml_parse_result result = map_file.load_file("maps/iso_walk.tmx");
+	pugi::xml_parse_result result = map_file.load_file(tmp.GetString());
 
 	if(result == NULL)
 	{
@@ -325,6 +325,19 @@ bool j1Map::LoadMap()
 		{
 			data.type = MAPTYPE_UNKNOWN;
 		}
+
+		// load custom properties from map data
+		pugi::xml_node propertiesNode = map.child("properties");
+
+		if(propertiesNode == NULL)
+		{
+			LOG("Map without custom properties");
+		}
+		else
+		{
+			LoadProperties(map, data.properties);
+		}
+
 	}
 
 	return ret;
@@ -438,12 +451,9 @@ bool j1Map::LoadProperties(pugi::xml_node& node, Properties& properties)
 	}
 	else
 	{
-		for (pugi::xml_node propertyNode = propertiesNode.child("property"); propertyNode; propertyNode = propertyNode.next_sibling("property"))
-		{
-			properties.draw = propertyNode.find_child_by_attribute("name", "Draw").attribute("value").as_bool(true);
-			properties.navigation = propertiesNode.find_child_by_attribute("name", "Navigation").attribute("value").as_bool(true);	
-		}
-		
+		properties.draw = propertiesNode.find_child_by_attribute("name", "Draw").attribute("value").as_bool(true);
+		properties.navigation = propertiesNode.find_child_by_attribute("name", "Navigation").attribute("value").as_bool(true);
+		properties.testValue = propertiesNode.find_child_by_attribute("name", "testValue").attribute("value").as_int(0);
 	}
 
 	return ret;
