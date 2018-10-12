@@ -10,8 +10,16 @@
 // TODO 7: Our custom properties should have one method
 // to ask for the value of a custom property
 // ----------------------------------------------------
+
 struct Properties
 {
+	bool draw = true;
+	bool navigation = true;
+
+	inline bool GetDraw() const
+	{
+		return draw;
+	}
 
 };
 

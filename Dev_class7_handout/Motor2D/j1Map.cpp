@@ -37,20 +37,23 @@ void j1Map::Draw()
 	p2List_item<MapLayer*>* layer = data.layers.start;
 	while (layer != NULL)
 	{
-		for (int y = 0; y < data.height; ++y)
+		if (layer->data->properties.GetDraw())
 		{
-			for (int x = 0; x < data.width; ++x)
+			for (int y = 0; y < data.height; ++y)
 			{
-				int tile_id = layer->data->Get(x, y);
-				if (tile_id > 0)
+				for (int x = 0; x < data.width; ++x)
 				{
-					TileSet* tileset = GetTilesetFromTileId(tile_id);
-					if (tileset != nullptr)
+					int tile_id = layer->data->Get(x, y);
+					if (tile_id > 0)
 					{
-						SDL_Rect r = tileset->GetTileRect(tile_id);
-						iPoint pos = MapToWorld(x, y);
+						TileSet* tileset = GetTilesetFromTileId(tile_id);
+						if (tileset != nullptr)
+						{
+							SDL_Rect r = tileset->GetTileRect(tile_id);
+							iPoint pos = MapToWorld(x, y);
 
-						App->render->Blit(tileset->texture, pos.x, pos.y, &r);
+							App->render->Blit(tileset->texture, pos.x, pos.y, &r);
+						}
 					}
 				}
 			}
@@ -422,10 +425,26 @@ bool j1Map::LoadLayer(pugi::xml_node& node, MapLayer* layer)
 // Load a group of properties from a node and fill a list with it
 bool j1Map::LoadProperties(pugi::xml_node& node, Properties& properties)
 {
-	bool ret = false;
-
+	bool ret = true;
+	
 	// TODO 6: Fill in the method to fill the custom properties from 
 	// an xml_node
+	pugi::xml_node propertiesNode = node.child("properties");
+
+	if (propertiesNode == NULL)
+	{
+		LOG("properties not found");
+		ret = false;
+	}
+	else
+	{
+		for (pugi::xml_node propertyNode = propertiesNode.child("property"); propertyNode; propertyNode = propertyNode.next_sibling("property"))
+		{
+			properties.draw = propertyNode.find_child_by_attribute("name", "Draw").attribute("value").as_bool(true);
+			properties.navigation = propertiesNode.find_child_by_attribute("name", "Navigation").attribute("value").as_bool(true);	
+		}
+		
+	}
 
 	return ret;
 }
