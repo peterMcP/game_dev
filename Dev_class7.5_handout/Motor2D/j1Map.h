@@ -144,7 +144,7 @@ public:
 	bool IsWalkable(int x, int y) const;
 	void ResetBFS();
 
-	void reconstructPath(iPoint destination);
+	bool reconstructPath(iPoint destination);
 
 private:
 

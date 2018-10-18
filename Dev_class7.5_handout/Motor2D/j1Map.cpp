@@ -39,8 +39,9 @@ void j1Map::ResetBFS()
 	reconstructed_path.clear();
 }
 
-void j1Map::reconstructPath(iPoint destination)
+bool j1Map::reconstructPath(iPoint destination)
 {
+	bool ret = true;
 	iPoint current = destination;
 
 	while (current != startPoint)
@@ -49,9 +50,15 @@ void j1Map::reconstructPath(iPoint destination)
 		int index = visited.find(current);
 		if (index >= 0)
 			current = came_from.At(index)->data;
-		else
+		else {
+			ret = false;
 			break;
+		}
+			
 	}
+	if(ret)reconstructed_path.add(startPoint); // adds start point too
+
+	return ret;
 }
 
 bool j1Map::PropagateBFS()
