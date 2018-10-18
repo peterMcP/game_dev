@@ -32,8 +32,28 @@ void j1Map::ResetBFS()
 {
 	frontier.Clear();
 	visited.clear();
-	frontier.Push(iPoint(19, 4));//iPoint(11, 11));//
+	came_from.clear();
+	frontier.Push(iPoint(19, 4));//iPoint(11, 11));// start point
 	visited.add(iPoint(19, 4));//iPoint(11, 11));//
+	came_from.add(iPoint(19, 4));//iPoint((uint)Neighbors::none, (uint)Neighbors::none));
+	reconstructed_path.clear();
+}
+
+void j1Map::reconstructPath(iPoint destination) // dont "fully" work
+{
+	iPoint current = destination;
+	//p2List_item<iPoint>* item = came_from.At // start;
+
+	while (current != iPoint(19, 4))
+	{
+		reconstructed_path.add(current);
+		uint index = came_from.find(current);
+		p2List_item<iPoint>* item = came_from.At(index);
+		current = item->prev->data; 
+		
+
+	}
+
 }
 
 void j1Map::PropagateBFS()
@@ -45,28 +65,42 @@ void j1Map::PropagateBFS()
 
 	if (frontier.Count() != 0)
 	{
-
 		iPoint currentNode = frontier.GetLast()->data;
 		frontier.Pop(currentNode);
-
 		direction[(uint)Neighbors::north] = iPoint(currentNode.x, currentNode.y - 1);
 		direction[(uint)Neighbors::south] = iPoint(currentNode.x, currentNode.y + 1 );
 		direction[(uint)Neighbors::est] = iPoint(currentNode.x - 1, currentNode.y);
 		direction[(uint)Neighbors::west] = iPoint(currentNode.x + 1, currentNode.y);
 		
+		for (uint i = 0; i < (uint)Neighbors::none; ++i)
+		{
+			if (visited.find(direction[i]) == -1 && IsWalkable(direction[i].x, direction[i].y))
+			{
+				frontier.Push(direction[i]);
+				visited.add(direction[i]);
+
+				if (came_from.find(direction[i]) == -1)
+				{
+					came_from.add(currentNode); // ?
+				}
+			}
+		}
+
+
+
 	}
 
 	// TODO 2: For each neighbor, if not visited, add it
 	// to the frontier queue and visited list
 
-	for (uint i = 0; i < (uint)Neighbors::none; ++i)
+	/*for (uint i = 0; i < (uint)Neighbors::none; ++i)
 	{
-		if (visited.find(direction[i]) == -1 && IsWalkable(direction[i].x, direction[i].y))
+		if (came_from.find(direction[i]) == -1 && IsWalkable(direction[i].x, direction[i].y))
 		{
 			frontier.Push(direction[i]);
-			visited.add(direction[i]);
+			came_from.add(direction[i]);
 		}
-	}
+	}*/
 
 }
 
@@ -100,6 +134,22 @@ void j1Map::DrawBFS()
 		iPoint pos = MapToWorld(point.x, point.y);
 
 		App->render->Blit(tileset->texture, pos.x, pos.y, &r);
+	}
+
+	// Draw reconstructed path
+	item = reconstructed_path.start;
+
+	while (item)
+	{
+		point = item->data;
+		TileSet* tileset = GetTilesetFromTileId(25);
+
+		SDL_Rect r = tileset->GetTileRect(25);
+		iPoint pos = MapToWorld(point.x, point.y);
+
+		App->render->Blit(tileset->texture, pos.x, pos.y, &r);
+
+		item = item->next;
 	}
 
 }

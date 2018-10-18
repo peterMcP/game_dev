@@ -107,6 +107,12 @@ struct MapData
 	p2List<MapLayer*>	layers;
 };
 
+struct reconstruct
+{
+	iPoint from;
+	iPoint node;
+};
+
 // ----------------------------------------------------
 class j1Map : public j1Module
 {
@@ -138,6 +144,8 @@ public:
 	bool IsWalkable(int x, int y) const;
 	void ResetBFS();
 
+	void reconstructPath(iPoint destination);
+
 private:
 
 	bool LoadMap();
@@ -161,6 +169,9 @@ private:
 	/// BFS
 	p2Queue<iPoint>		frontier;
 	p2List<iPoint>		visited;
+	p2List<iPoint>		came_from;
+	iPoint destination;
+	p2List<iPoint>		reconstructed_path;
 };
 
 #endif // __j1MAP_H__
