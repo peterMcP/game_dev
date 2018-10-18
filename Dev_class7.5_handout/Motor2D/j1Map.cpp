@@ -32,8 +32,8 @@ void j1Map::ResetBFS()
 {
 	frontier.Clear();
 	visited.clear();
-	frontier.Push(iPoint(19, 4));
-	visited.add(iPoint(19, 4));
+	frontier.Push(iPoint(19, 4));//iPoint(11, 11));//
+	visited.add(iPoint(19, 4));//iPoint(11, 11));//
 }
 
 void j1Map::PropagateBFS()
@@ -41,47 +41,33 @@ void j1Map::PropagateBFS()
 	// TODO 1: If frontier queue contains elements
 	// pop the last one and calculate its 4 neighbors
 
-	iPoint north;
-	iPoint south;
-	iPoint est;
-	iPoint west;
+	iPoint direction[(uint)Neighbors::none];
 
 	if (frontier.Count() != 0)
 	{
-		//p2Queue_item item = frontier.start;
+
 		iPoint currentNode = frontier.GetLast()->data;
 		frontier.Pop(currentNode);
 
-		north = { currentNode.x, currentNode.y - 1 };
-		south = { currentNode.x, currentNode.y + 1 };
-		est = { currentNode.x - 1, currentNode.y };
-		west = { currentNode.x + 1, currentNode.y };
+		direction[(uint)Neighbors::north] = iPoint(currentNode.x, currentNode.y - 1);
+		direction[(uint)Neighbors::south] = iPoint(currentNode.x, currentNode.y + 1 );
+		direction[(uint)Neighbors::est] = iPoint(currentNode.x - 1, currentNode.y);
+		direction[(uint)Neighbors::west] = iPoint(currentNode.x + 1, currentNode.y);
 		
 	}
 
 	// TODO 2: For each neighbor, if not visited, add it
 	// to the frontier queue and visited list
-	if (visited.find(north) == -1)
+
+	for (uint i = 0; i < (uint)Neighbors::none; ++i)
 	{
-		frontier.Push(north);
-		visited.add(north);
+		if (visited.find(direction[i]) == -1 && IsWalkable(direction[i].x, direction[i].y))
+		{
+			frontier.Push(direction[i]);
+			visited.add(direction[i]);
+		}
 	}
-	if (visited.find(est) == -1)
-	{
-		frontier.Push(est);
-		visited.add(est);
-	}
-	if (visited.find(south) == -1)
-	{
-		frontier.Push(south);
-		visited.add(south);
-	}
-	if (visited.find(west) == -1)
-	{
-		frontier.Push(west);
-		visited.add(west);
-	}
-	
+
 }
 
 void j1Map::DrawBFS()
@@ -123,10 +109,21 @@ bool j1Map::IsWalkable(int x, int y) const
 	// TODO 3: return true only if x and y are within map limits
 	// and the tile is walkable (tile id 0 in the navigation layer)
 
-	bool ret = true;
+	bool ret = false;
 
-	if (x > data.tile_width || x < 0)
-		ret = false;
+	p2List_item<MapLayer*>* layers = data.layers.start;
+
+	while (layers != NULL)
+	{
+		if (layers->data->properties.Get("Navigation") == 1)
+		{
+			if (x < data.width && x >= 0 && y >= 0 && y < data.height && layers->data->Get(x,y) == 0)
+			{
+				ret = true;
+			}
+		}
+		layers = layers->next;
+	}
 
 	return ret;
 }
