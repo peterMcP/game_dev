@@ -39,21 +39,18 @@ void j1Map::ResetBFS()
 	reconstructed_path.clear();
 }
 
-void j1Map::reconstructPath(iPoint destination) // dont "fully" work
+void j1Map::reconstructPath(iPoint destination)
 {
 	iPoint current = destination;
-	//p2List_item<iPoint>* item = came_from.At // start;
 
 	while (current != iPoint(19, 4))
 	{
 		reconstructed_path.add(current);
-		uint index = came_from.find(current);
-		p2List_item<iPoint>* item = came_from.At(index);
-		current = item->prev->data; 
-		
+		p2List_item<iPoint>* visitedItem = visited.start;
 
+		uint index = visited.find(current);
+		current = came_from.At(index)->data;
 	}
-
 }
 
 void j1Map::PropagateBFS()
@@ -85,9 +82,6 @@ void j1Map::PropagateBFS()
 				}
 			}
 		}
-
-
-
 	}
 
 	// TODO 2: For each neighbor, if not visited, add it
