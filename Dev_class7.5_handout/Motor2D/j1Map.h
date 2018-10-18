@@ -139,7 +139,7 @@ public:
 	iPoint WorldToMap(int x, int y) const;
 
 	// BFS
-	void PropagateBFS();
+	bool PropagateBFS();
 	void DrawBFS();
 	bool IsWalkable(int x, int y) const;
 	void ResetBFS();
@@ -159,6 +159,7 @@ private:
 public:
 
 	MapData data;
+	iPoint startPoint = {19, 4};
 
 private:
 
@@ -170,7 +171,7 @@ private:
 	p2Queue<iPoint>		frontier;
 	p2List<iPoint>		visited;
 	p2List<iPoint>		came_from;
-	iPoint destination;
+	//iPoint destination;
 	p2List<iPoint>		reconstructed_path;
 };
 

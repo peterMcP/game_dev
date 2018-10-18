@@ -33,9 +33,9 @@ void j1Map::ResetBFS()
 	frontier.Clear();
 	visited.clear();
 	came_from.clear();
-	frontier.Push(iPoint(19, 4));//iPoint(11, 11));// start point
-	visited.add(iPoint(19, 4));//iPoint(11, 11));//
-	came_from.add(iPoint(19, 4));//iPoint((uint)Neighbors::none, (uint)Neighbors::none));
+	frontier.Push(startPoint);//iPoint(11, 11));// start point
+	visited.add(startPoint);//iPoint(11, 11));//
+	came_from.add(startPoint);//iPoint((uint)Neighbors::none, (uint)Neighbors::none));
 	reconstructed_path.clear();
 }
 
@@ -43,24 +43,27 @@ void j1Map::reconstructPath(iPoint destination)
 {
 	iPoint current = destination;
 
-	while (current != iPoint(19, 4))
+	while (current != startPoint)
 	{
 		reconstructed_path.add(current);
-		p2List_item<iPoint>* visitedItem = visited.start;
-
-		uint index = visited.find(current);
-		current = came_from.At(index)->data;
+		int index = visited.find(current);
+		if (index >= 0)
+			current = came_from.At(index)->data;
+		else
+			break;
 	}
 }
 
-void j1Map::PropagateBFS()
+bool j1Map::PropagateBFS()
 {
 	// TODO 1: If frontier queue contains elements
 	// pop the last one and calculate its 4 neighbors
 
+	bool ret = true;
+
 	iPoint direction[(uint)Neighbors::none];
 
-	if (frontier.Count() != 0)
+	while (frontier.Count() != 0)
 	{
 		iPoint currentNode = frontier.GetLast()->data;
 		frontier.Pop(currentNode);
@@ -78,12 +81,13 @@ void j1Map::PropagateBFS()
 
 				if (came_from.find(direction[i]) == -1)
 				{
-					came_from.add(currentNode); // ?
+					came_from.add(currentNode); // store the current parent
 				}
 			}
 		}
 	}
 
+	return ret;
 	// TODO 2: For each neighbor, if not visited, add it
 	// to the frontier queue and visited list
 
@@ -277,7 +281,7 @@ iPoint j1Map::WorldToMap(int x, int y) const
 		
 		float half_width = data.tile_width * 0.5f;
 		float half_height = data.tile_height * 0.5f;
-		ret.x = int( (x / half_width + y / half_height) / 2);
+		ret.x = int( (x / half_width + y / half_height) / 2) - 1;
 		ret.y = int( (y / half_height - (x / half_width)) / 2);
 	}
 	else

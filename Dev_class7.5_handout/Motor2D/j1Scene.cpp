@@ -86,6 +86,24 @@ bool j1Scene::Update(float dt)
 					map_coordinates.x, map_coordinates.y);
 
 	App->win->SetTitle(title.GetString());
+
+	// ----------------------------
+	if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN)
+	{
+		LOG("click");
+		// calculate new destination path
+		App->map->ResetBFS();
+		App->map->PropagateBFS();
+		App->map->reconstructPath(map_coordinates);
+
+	}
+	if (App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_DOWN)
+	{
+		App->map->startPoint.x = map_coordinates.x;
+		App->map->startPoint.y = map_coordinates.y;
+		LOG("defined start point");
+	}
+
 	return true;
 }
 
