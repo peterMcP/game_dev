@@ -66,19 +66,19 @@ bool j1Map::PropagateBFS()
 	// TODO 1: If frontier queue contains elements
 	// pop the last one and calculate its 4 neighbors
 
-	bool ret = true;
+	bool ret = false;
 
 	iPoint direction[(uint)Neighbors::none];
 
-	while (frontier.Count() != 0)
+	if (frontier.Count() != 0)
 	{
 		iPoint currentNode = frontier.GetLast()->data;
 		frontier.Pop(currentNode);
 		direction[(uint)Neighbors::north] = iPoint(currentNode.x, currentNode.y - 1);
-		direction[(uint)Neighbors::south] = iPoint(currentNode.x, currentNode.y + 1 );
+		direction[(uint)Neighbors::south] = iPoint(currentNode.x, currentNode.y + 1);
 		direction[(uint)Neighbors::est] = iPoint(currentNode.x - 1, currentNode.y);
 		direction[(uint)Neighbors::west] = iPoint(currentNode.x + 1, currentNode.y);
-		
+
 		for (uint i = 0; i < (uint)Neighbors::none; ++i)
 		{
 			if (visited.find(direction[i]) == -1 && IsWalkable(direction[i].x, direction[i].y))
@@ -93,6 +93,8 @@ bool j1Map::PropagateBFS()
 			}
 		}
 	}
+	else
+		ret = true;
 
 	return ret;
 	// TODO 2: For each neighbor, if not visited, add it

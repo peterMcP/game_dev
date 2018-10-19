@@ -93,7 +93,10 @@ bool j1Scene::Update(float dt)
 		LOG("click");
 		// calculate new destination path
 		App->map->ResetBFS();
-		App->map->PropagateBFS();
+		while (!App->map->PropagateBFS())
+		{
+			App->map->PropagateBFS();
+		}
 		App->map->reconstructPath(map_coordinates);
 
 	}
