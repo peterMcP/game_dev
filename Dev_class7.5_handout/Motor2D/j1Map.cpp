@@ -78,8 +78,14 @@ bool j1Map::PropagateBFS()
 		frontier.Pop(currentNode);
 		direction[(uint)Neighbors::north] = iPoint(currentNode.x, currentNode.y - 1);
 		direction[(uint)Neighbors::south] = iPoint(currentNode.x, currentNode.y + 1);
-		direction[(uint)Neighbors::est] = iPoint(currentNode.x - 1, currentNode.y);
+		direction[(uint)Neighbors::east] = iPoint(currentNode.x - 1, currentNode.y);
 		direction[(uint)Neighbors::west] = iPoint(currentNode.x + 1, currentNode.y);
+
+		// diagonals
+		direction[(uint)Neighbors::north_east] = iPoint(currentNode.x - 1, currentNode.y - 1);
+		direction[(uint)Neighbors::north_west] = iPoint(currentNode.x + 1, currentNode.y - 1);
+		direction[(uint)Neighbors::south_east] = iPoint(currentNode.x - 1, currentNode.y + 1);
+		direction[(uint)Neighbors::south_west] = iPoint(currentNode.x + 1, currentNode.y + 1);
 
 		for (uint i = 0; i < (uint)Neighbors::none; ++i)
 		{

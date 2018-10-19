@@ -11,8 +11,12 @@ enum class Neighbors : unsigned int
 {
 	north,
 	south,
-	est,
+	east,
 	west,
+	north_east,
+	north_west,
+	south_east,
+	south_west,
 	none
 };
 
