@@ -71,10 +71,10 @@ bool j1Map::PropagateBFS()
 	bool ret = false;
 
 	iPoint direction[(uint)Neighbors::none];
+	iPoint currentNode;
 
 	if (frontier.Count() != 0)
 	{
-		iPoint currentNode = frontier.GetLast()->data;
 		frontier.Pop(currentNode);
 		direction[(uint)Neighbors::north] = iPoint(currentNode.x, currentNode.y - 1);
 		direction[(uint)Neighbors::south] = iPoint(currentNode.x, currentNode.y + 1);
