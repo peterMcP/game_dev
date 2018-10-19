@@ -146,6 +146,8 @@ public:
 
 	bool reconstructPath(iPoint destination);
 
+	void SetDestinationPoint(int x, int y);
+
 private:
 
 	bool LoadMap();
@@ -171,7 +173,7 @@ private:
 	p2Queue<iPoint>		frontier;
 	p2List<iPoint>		visited;
 	p2List<iPoint>		came_from;
-	//iPoint destination;
+	iPoint destinationPoint = { 5,5 };
 	p2List<iPoint>		reconstructed_path;
 };
 

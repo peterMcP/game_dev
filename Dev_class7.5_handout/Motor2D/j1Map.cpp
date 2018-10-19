@@ -44,6 +44,8 @@ bool j1Map::reconstructPath(iPoint destination)
 	bool ret = true;
 	iPoint current = destination;
 
+	destinationPoint = destination;
+
 	while (current != startPoint)
 	{
 		reconstructed_path.add(current);
@@ -92,9 +94,17 @@ bool j1Map::PropagateBFS()
 				}
 			}
 		}
+
+		if (currentNode == destinationPoint)
+		{
+			return true;
+			//break;
+		}
 	}
 	else
 		ret = true;
+
+	
 
 	return ret;
 	// TODO 2: For each neighbor, if not visited, add it
@@ -141,6 +151,7 @@ void j1Map::DrawBFS()
 		iPoint pos = MapToWorld(point.x, point.y);
 
 		App->render->Blit(tileset->texture, pos.x, pos.y, &r);
+
 	}
 
 	// Draw reconstructed path
@@ -158,6 +169,14 @@ void j1Map::DrawBFS()
 
 		item = item->next;
 	}
+
+	// draw destination point
+	TileSet* tileset = GetTilesetFromTileId(25);
+
+	SDL_Rect r = tileset->GetTileRect(25);
+
+	iPoint posb = MapToWorld(destinationPoint.x, destinationPoint.y);
+	App->render->Blit(tileset->texture, posb.x, posb.y, &r);
 
 }
 
@@ -611,4 +630,10 @@ bool j1Map::LoadProperties(pugi::xml_node& node, Properties& properties)
 	}
 
 	return ret;
+}
+
+void j1Map::SetDestinationPoint(int x, int y)
+{
+	destinationPoint.x = x;
+	destinationPoint.y = y;
 }
