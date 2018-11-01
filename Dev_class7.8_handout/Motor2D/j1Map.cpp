@@ -72,6 +72,7 @@ void j1Map::PropagateDijkstra()
 	iPoint curr;
 	if (frontier.Pop(curr))
 	{
+
 		cost_so_far[curr.x][curr.y] = MovementCost(curr.x, curr.y);
 
 		iPoint neighbors[4];
@@ -86,7 +87,7 @@ void j1Map::PropagateDijkstra()
 			{
 				int new_cost = cost_so_far[curr.x][curr.y] + MovementCost(neighbors[i].x, neighbors[i].y);
 
-				if (cost_so_far[neighbors[i].x][neighbors[i].y] != new_cost || new_cost <= cost_so_far[neighbors[i].x][neighbors[i].y]) //MovementCost(neighbors[i].x, neighbors[i].y) > 0)
+				if (cost_so_far[neighbors[i].x][neighbors[i].y] != new_cost || new_cost <= cost_so_far[neighbors[i].x][neighbors[i].y])
 				{
 					if (visited.find(neighbors[i]) == -1)
 					{
@@ -99,7 +100,6 @@ void j1Map::PropagateDijkstra()
 			}
 		}
 	}
-
 }
 
 int j1Map::MovementCost(int x, int y) const
