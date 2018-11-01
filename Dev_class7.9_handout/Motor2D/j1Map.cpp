@@ -65,6 +65,48 @@ void j1Map::Path(int x, int y)
 
 }
 
+void j1Map::PropagateAStar()
+{
+	iPoint curr;
+	if (frontier.Pop(curr))
+	{
+		iPoint neighbors[4];
+		neighbors[0].create(curr.x + 1, curr.y + 0);
+		neighbors[1].create(curr.x + 0, curr.y + 1);
+		neighbors[2].create(curr.x - 1, curr.y + 0);
+		neighbors[3].create(curr.x + 0, curr.y - 1);
+
+		for (uint i = 0; i < 4; ++i)
+		{
+			if (MovementCost(neighbors[i].x, neighbors[i].y) >= 0)
+			{
+				if (curr == destination)
+				{
+					LOG("destination reached");
+					iPoint dest = MapToWorld(destination.x, destination.y);
+					Path(dest.x , dest.y);
+					frontier.Clear();
+					break;
+				}
+
+				int new_cost = cost_so_far[curr.x][curr.y] + MovementCost(neighbors[i].x, neighbors[i].y);
+
+				if (cost_so_far[neighbors[i].x][neighbors[i].y] == 0 || new_cost < cost_so_far[neighbors[i].x][neighbors[i].y])
+				{
+					cost_so_far[neighbors[i].x][neighbors[i].y] = new_cost;
+					frontier.Push(neighbors[i], new_cost + neighbors[i].DistanceManhattan(destination));
+					if (visited.find(neighbors[i]) == -1) // prevents double start node check
+					{
+						visited.add(neighbors[i]);
+						breadcrumbs.add(curr);
+					}
+
+				}
+			}
+		}
+	}
+}
+
 void j1Map::PropagateDijkstra()
 {
 	// TODO 3: Taking BFS as a reference, implement the Dijkstra algorithm
@@ -83,20 +125,19 @@ void j1Map::PropagateDijkstra()
 		{
 			if (MovementCost(neighbors[i].x, neighbors[i].y) >= 0)
 			{
-				if (curr == destination)
+				/*if (curr == destination)
 				{
 					LOG("destination reached");
 					iPoint dest = MapToWorld(destination.x, destination.y);
 					Path(dest.x , dest.y);
 					frontier.Clear();
 					break;
-				}
+				}*/
 
 				int new_cost = cost_so_far[curr.x][curr.y] + MovementCost(neighbors[i].x, neighbors[i].y);
 
 				if (cost_so_far[neighbors[i].x][neighbors[i].y] == 0 || new_cost < cost_so_far[neighbors[i].x][neighbors[i].y])
 				{
-				
 					cost_so_far[neighbors[i].x][neighbors[i].y] = new_cost;
 					frontier.Push(neighbors[i], new_cost);
 					if (visited.find(neighbors[i]) == -1) // prevents double start node check
