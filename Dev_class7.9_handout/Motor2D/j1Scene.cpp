@@ -77,7 +77,7 @@ bool j1Scene::Update(float dt)
 	if (App->input->GetKey(SDL_SCANCODE_K) == KEY_REPEAT)
 		App->map->PropagateDijkstra();
 	
-	if (App->input->GetKey(SDL_SCANCODE_A) == KEY_REPEAT)
+	if (App->input->GetKey(SDL_SCANCODE_A) == KEY_DOWN)
 		App->map->PropagateAStar();
 
 	
@@ -107,6 +107,7 @@ bool j1Scene::Update(float dt)
 		App->input->GetMousePosition(p.x, p.y);
 		App->map->destination = map_coordinates;
 		App->map->Path(p.x - App->render->camera.x, p.y - App->render->camera.y);
+		//App->map.frontier
 	}
 
 	return true;

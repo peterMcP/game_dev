@@ -41,10 +41,11 @@ void j1Map::ResetPath()
 	frontier.Push(iPoint(19, 4), MovementCost(19,4));
 	visited.add(iPoint(19, 4));
 	breadcrumbs.add(iPoint(19, 4));
-	memset(cost_so_far, -1, sizeof(int) * COST_MAP * COST_MAP);
+	memset(cost_so_far, 0, sizeof(uint) * COST_MAP * COST_MAP);
 	//path.Clear();
 	propagation = true;
-	//cost_so_far[19][4] = -1;
+	cost_so_far[19][4] = 1;
+	
 }
 
 void j1Map::Path(int x, int y)
@@ -82,9 +83,9 @@ void j1Map::PropagateAStar()
 
 			for (uint i = 0; i < 4; ++i)
 			{
-				if (MovementCost(neighbors[i].x, neighbors[i].y) >= 0)
+				if (MovementCost(neighbors[i].x, neighbors[i].y) > 0)
 				{
-					if (curr == destination)
+					if (neighbors[i] == destination)
 					{
 						LOG("destination reached");
 						iPoint dest = MapToWorld(destination.x, destination.y);
@@ -96,16 +97,14 @@ void j1Map::PropagateAStar()
 
 					int new_cost = cost_so_far[curr.x][curr.y] + MovementCost(neighbors[i].x, neighbors[i].y);
 
-					if (cost_so_far[neighbors[i].x][neighbors[i].y] == -1 || new_cost < cost_so_far[neighbors[i].x][neighbors[i].y])
+					if (cost_so_far[neighbors[i].x][neighbors[i].y] == 0 || new_cost < cost_so_far[neighbors[i].x][neighbors[i].y])
 					{
-						if (new_cost == -1) new_cost = 0;
 						cost_so_far[neighbors[i].x][neighbors[i].y] = new_cost;
-						frontier.Push(neighbors[i], new_cost + neighbors[i].DistanceManhattan(destination));
-						if (visited.find(neighbors[i]) == -1) // prevents double start node check
-						{
-							visited.add(neighbors[i]);
-							breadcrumbs.add(curr);
-						}
+						int priority = new_cost + neighbors[i].DistanceManhattan(destination);
+						LOG("priority: %i", priority);
+						frontier.Push(neighbors[i], priority);
+						visited.add(neighbors[i]);
+						breadcrumbs.add(curr);
 
 					}
 				}
@@ -130,7 +129,7 @@ void j1Map::PropagateDijkstra()
 		
 		for (uint i = 0; i < 4; ++i)
 		{
-			if (MovementCost(neighbors[i].x, neighbors[i].y) >= 0)
+			if (MovementCost(neighbors[i].x, neighbors[i].y) > 0) // 0 = not walkable
 			{
 				/*if (curr == destination)
 				{
@@ -143,17 +142,12 @@ void j1Map::PropagateDijkstra()
 
 				int new_cost = cost_so_far[curr.x][curr.y] + MovementCost(neighbors[i].x, neighbors[i].y);
 
-				if (cost_so_far[neighbors[i].x][neighbors[i].y] == -1 || new_cost < cost_so_far[neighbors[i].x][neighbors[i].y])
+				if (cost_so_far[neighbors[i].x][neighbors[i].y] == 0 || new_cost < cost_so_far[neighbors[i].x][neighbors[i].y])
 				{
-					if (new_cost == -1) new_cost = 0;
 					cost_so_far[neighbors[i].x][neighbors[i].y] = new_cost;
 					frontier.Push(neighbors[i], new_cost);
-					if (visited.find(neighbors[i]) == -1) // prevents double start node check
-					{
-						visited.add(neighbors[i]);
-						breadcrumbs.add(curr);
-					}
-
+					visited.add(neighbors[i]);
+					breadcrumbs.add(curr);
 				}
 			}
 		}
@@ -169,9 +163,9 @@ int j1Map::MovementCost(int x, int y) const
 		int id = data.layers.start->next->data->Get(x, y);
 
 		if (id == 0)
-			ret = 0;
+			ret = 1;
 		else
-			ret = 3;
+			ret = 0; // "water"
 	}
 
 	return ret;
