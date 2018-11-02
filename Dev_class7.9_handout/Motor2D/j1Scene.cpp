@@ -80,6 +80,9 @@ bool j1Scene::Update(float dt)
 	if (App->input->GetKey(SDL_SCANCODE_A) == KEY_DOWN)
 		App->map->PropagateAStar();
 
+	if (App->input->GetKey(SDL_SCANCODE_H) == KEY_DOWN)
+		App->map->PropagateHeuristic();
+
 	
 	/*if (App->input->GetMouseButtonDown(1) == KEY_DOWN)
 	{

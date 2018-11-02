@@ -137,6 +137,7 @@ public:
 	void PropagateBFS();
 	void PropagateDijkstra();
 	void PropagateAStar();
+	void PropagateHeuristic();
 
 private:
 
