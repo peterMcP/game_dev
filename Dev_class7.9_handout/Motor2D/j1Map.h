@@ -159,13 +159,14 @@ private:
 	p2SString			folder;
 	bool				map_loaded;
 
-	/// BFS
+	// BFS
 	p2PQueue<iPoint>	frontier;
 	p2List<iPoint>		visited;
 	p2List<iPoint>		breadcrumbs;
-	uint				cost_so_far[COST_MAP][COST_MAP];
+	int				cost_so_far[COST_MAP][COST_MAP];
 	p2DynArray<iPoint>	path;
 	SDL_Texture*		tile_x = nullptr;
+	bool propagation = true;
 
 };
 
