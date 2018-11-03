@@ -167,26 +167,76 @@ int PathNode::CalculateF(const iPoint& destination)
 // ----------------------------------------------------------------------------------
 int j1PathFinding::CreatePath(const iPoint& origin, const iPoint& destination)
 {
+	if (last_path.Count() > 0) last_path.Clear();
+
+	int ret = -1;
 	// TODO 1: if origin or destination are not walkable, return -1
+	if (!IsWalkable(origin) || !IsWalkable(destination))
+		return ret;
 
 	// TODO 2: Create two lists: open, close
 	// Add the origin tile to open
 	// Iterate while we have tile in the open list
+	PathList open, closed;
 
-	// TODO 3: Move the lowest score cell from open list to the closed list
+	open.list.add(PathNode(0, origin.DistanceTo(destination), origin, nullptr));
+
+	while (open.list.count() > 0)
+	{
+		// TODO 3: Move the lowest score cell from open list to the closed list
+		closed.list.add(open.GetNodeLowestScore()->data);
+		open.list.del(open.GetNodeLowestScore());
+
+		// TODO 4: If we just added the destination, we are done!
+		// Backtrack to create the final path
+		// Use the Pathnode::parent and Flip() the path when you are finish
+		if (closed.list.end->data.pos == destination)
+		{
+			const p2List_item<PathNode>* closedItem = closed.list.end;
+			while (closedItem->data.parent != nullptr)
+			{
+				last_path.PushBack(closedItem->data.pos);
+				closedItem = closed.Find(closedItem->data.parent->pos);
+			}
+			// adds start node too
+			last_path.PushBack(closed.list.start->data.pos);
+
+			last_path.Flip();
+
+			return last_path.Count();
+		}
+
+		// TODO 5: Fill a list of all adjacent nodes
+		PathList neighbours;
+		closed.list.end->data.FindWalkableAdjacents(neighbours);
+
+		// TODO 6: Iterate adjancent nodes:
+		// ignore nodes in the closed list
+		// If it is NOT found, calculate its F and add it to the open list
+		// If it is already in the open list, check if it is a better path (compare G)
+		// If it is a better path, Update the parent
+		p2List_item<PathNode>* neighboursNodes = neighbours.list.start;
+		for (; neighboursNodes != NULL; neighboursNodes = neighboursNodes->next)
+		{
+			if(closed.Find(neighboursNodes->data.pos))
+				continue;
 	
-	// TODO 4: If we just added the destination, we are done!
-	// Backtrack to create the final path
-	// Use the Pathnode::parent and Flip() the path when you are finish
+			if (open.Find(neighboursNodes->data.pos))
+			{
+				PathNode matchPathChecker = open.Find(neighboursNodes->data.pos)->data;
+				neighboursNodes->data.CalculateF(destination);
 
-	// TODO 5: Fill a list of all adjancent nodes
-
-	// TODO 6: Iterate adjancent nodes:
-	// ignore nodes in the closed list
-	// If it is NOT found, calculate its F and add it to the open list
-	// If it is already in the open list, check if it is a better path (compare G)
-	// If it is a better path, Update the parent
-
-	return -1;
+				if (neighboursNodes->data.g < matchPathChecker.g)
+				{
+					matchPathChecker.parent = neighboursNodes->data.parent;
+				}
+			}
+			else
+			{
+				neighboursNodes->data.CalculateF(destination);
+				open.list.add(neighboursNodes->data);
+			}
+		}
+	}
 }
 
