@@ -196,7 +196,7 @@ void j1App::FinishUpdate()
 
 	float avg_fps = frame_counter / startup_timer.ReadSec();
 	float seconds_since_startup = startup_timer.ReadSec();
-	float dt = perf_timer.ReadMs();
+	float dt = perf_timer.ReadMs() / 1000.0f;
 	uint32 last_frame_ms = perf_timer.ReadMs();
 	uint32 frames_on_last_update = 1000.0f / perf_timer.ReadMs();
 	uint64 frame_count = frame_counter;
