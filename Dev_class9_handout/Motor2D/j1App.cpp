@@ -21,6 +21,8 @@
 // Constructor
 j1App::j1App(int argc, char* args[]) : argc(argc), args(args)
 {
+	j1PerfTimer performance_timer;
+
 	input = new j1Input();
 	win = new j1Window();
 	render = new j1Render();
@@ -42,6 +44,8 @@ j1App::j1App(int argc, char* args[]) : argc(argc), args(args)
 
 	// render last to swap buffer
 	AddModule(render);
+
+	LOG("constructor took %f", performance_timer.ReadMs());
 }
 
 // Destructor
@@ -68,6 +72,9 @@ void j1App::AddModule(j1Module* module)
 // Called before render is available
 bool j1App::Awake()
 {
+	// performance timer
+	j1PerfTimer performance_timer;
+
 	pugi::xml_document	config_file;
 	pugi::xml_node		config;
 	pugi::xml_node		app_config;
@@ -97,12 +104,17 @@ bool j1App::Awake()
 		}
 	}
 
+	LOG("Awake took %f ms", performance_timer.ReadMs());
+
 	return ret;
 }
 
 // Called before the first frame
 bool j1App::Start()
 {
+	// performance timer
+	j1PerfTimer performance_timer;
+
 	bool ret = true;
 	p2List_item<j1Module*>* item;
 	item = modules.start;
@@ -112,6 +124,11 @@ bool j1App::Start()
 		ret = item->data->Start();
 		item = item->next;
 	}
+
+	LOG("start took %f ms", performance_timer.ReadMs());
+
+	startup_timer.Start();
+
 	return ret;
 }
 
@@ -155,11 +172,15 @@ pugi::xml_node j1App::LoadConfig(pugi::xml_document& config_file) const
 // ---------------------------------------------
 void j1App::PrepareUpdate()
 {
+	perf_timer.Start();
 }
 
 // ---------------------------------------------
 void j1App::FinishUpdate()
 {
+	static Uint64 frame_counter = 0;
+	frame_counter++;
+
 	if(want_to_save == true)
 		SavegameNow();
 
@@ -173,13 +194,13 @@ void j1App::FinishUpdate()
 	// Amount of ms took the last update
 	// Amount of frames during the last second
 
-	float avg_fps = 0.0f;
-	float seconds_since_startup = 0.0f;
-	float dt = 0.0f;
-	uint32 last_frame_ms = 0;
-	uint32 frames_on_last_update = 0;
-	uint64 frame_count = 0;
-
+	float avg_fps = frame_counter / startup_timer.ReadSec();
+	float seconds_since_startup = startup_timer.ReadSec();
+	float dt = perf_timer.ReadMs();
+	uint32 last_frame_ms = perf_timer.ReadMs();
+	uint32 frames_on_last_update = 1000.0f / perf_timer.ReadMs();
+	uint64 frame_count = frame_counter;
+	
 	static char title[256];
 	sprintf_s(title, 256, "Av.FPS: %.2f Last Frame Ms: %02u Last sec frames: %i Last dt: %.3f Time since startup: %.3f Frame Count: %lu ",
 			  avg_fps, last_frame_ms, frames_on_last_update, dt, seconds_since_startup, frame_count);
@@ -255,6 +276,9 @@ bool j1App::PostUpdate()
 // Called before quitting
 bool j1App::CleanUp()
 {
+	// performance timer
+	j1PerfTimer performance_timer;
+
 	bool ret = true;
 	p2List_item<j1Module*>* item;
 	item = modules.end;
@@ -264,6 +288,8 @@ bool j1App::CleanUp()
 		ret = item->data->CleanUp();
 		item = item->prev;
 	}
+
+	LOG("cleanup took %f ms", performance_timer.ReadMs());
 	return ret;
 }
 

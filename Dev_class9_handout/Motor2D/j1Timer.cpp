@@ -23,11 +23,11 @@ void j1Timer::Start()
 // ---------------------------------------------
 uint32 j1Timer::Read() const
 {
-	return SDL_GetTicks();
+	return SDL_GetTicks() - started_at;
 }
 
 // ---------------------------------------------
 float j1Timer::ReadSec() const
 {
-	return SDL_GetTicks() * 0.001f;
+	return float((Read()) * 0.001f);
 }
