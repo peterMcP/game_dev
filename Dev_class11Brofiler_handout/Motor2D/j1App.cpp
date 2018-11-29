@@ -14,14 +14,13 @@
 #include "j1Pathfinding.h"
 #include "j1App.h"
 
-// TODO 3: Measure the amount of ms that takes to execute:
-// App constructor, Awake, Start and CleanUp
-// LOG the result
+// TODO 3: Add Brofiler categories to all Update methods
+#include "Brofiler/Brofiler.h"
 
 // Constructor
 j1App::j1App(int argc, char* args[]) : argc(argc), args(args)
 {
-	j1PerfTimer performance_timer;
+	PERF_START(ptimer);
 
 	input = new j1Input();
 	win = new j1Window();
@@ -45,7 +44,7 @@ j1App::j1App(int argc, char* args[]) : argc(argc), args(args)
 	// render last to swap buffer
 	AddModule(render);
 
-	LOG("constructor took %f", performance_timer.ReadMs());
+	PERF_PEEK(ptimer);
 }
 
 // Destructor
@@ -72,8 +71,7 @@ void j1App::AddModule(j1Module* module)
 // Called before render is available
 bool j1App::Awake()
 {
-	// performance timer
-	j1PerfTimer performance_timer;
+	PERF_START(ptimer);
 
 	pugi::xml_document	config_file;
 	pugi::xml_node		config;
@@ -90,6 +88,13 @@ bool j1App::Awake()
 		app_config = config.child("app");
 		title.create(app_config.child("title").child_value());
 		organization.create(app_config.child("organization").child_value());
+
+		int cap = app_config.attribute("framerate_cap").as_int(-1);
+
+		if(cap > 0)
+		{
+			capped_ms = 1000 / cap;
+		}
 	}
 
 	if(ret == true)
@@ -104,7 +109,7 @@ bool j1App::Awake()
 		}
 	}
 
-	LOG("Awake took %f ms", performance_timer.ReadMs());
+	PERF_PEEK(ptimer);
 
 	return ret;
 }
@@ -112,9 +117,7 @@ bool j1App::Awake()
 // Called before the first frame
 bool j1App::Start()
 {
-	// performance timer
-	j1PerfTimer performance_timer;
-
+	PERF_START(ptimer);
 	bool ret = true;
 	p2List_item<j1Module*>* item;
 	item = modules.start;
@@ -124,10 +127,9 @@ bool j1App::Start()
 		ret = item->data->Start();
 		item = item->next;
 	}
+	startup_time.Start();
 
-	LOG("start took %f ms", performance_timer.ReadMs());
-
-	startup_timer.Start();
+	PERF_PEEK(ptimer);
 
 	return ret;
 }
@@ -135,6 +137,8 @@ bool j1App::Start()
 // Called each loop iteration
 bool j1App::Update()
 {
+	BROFILER_CATEGORY("App Update", Profiler::Color::LawnGreen)
+
 	bool ret = true;
 	PrepareUpdate();
 
@@ -172,45 +176,54 @@ pugi::xml_node j1App::LoadConfig(pugi::xml_document& config_file) const
 // ---------------------------------------------
 void j1App::PrepareUpdate()
 {
-	perf_timer.Start();
+	frame_count++;
+	last_sec_frame_count++;
+
+	dt = frame_time.ReadSec();
+	frame_time.Start();
 }
 
 // ---------------------------------------------
 void j1App::FinishUpdate()
 {
-	static Uint64 frame_counter = 0;
-	frame_counter++;
-
 	if(want_to_save == true)
 		SavegameNow();
 
 	if(want_to_load == true)
 		LoadGameNow();
 
-	// TODO 4: Now calculate:
-	// Amount of frames since startup
-	// Amount of time since game start (use a low resolution timer)
-	// Average FPS for the whole game life
-	// Amount of ms took the last update
-	// Amount of frames during the last second
+	// Framerate calculations --
 
-	float avg_fps = frame_counter / startup_timer.ReadSec();
-	float seconds_since_startup = startup_timer.ReadSec();
-	float dt = perf_timer.ReadMs() * 0.001f;
-	uint32 last_frame_ms = dt * 1000.0f; // perf_timer.ReadMs();
-	uint32 frames_on_last_update = 1000.0f / perf_timer.ReadMs();
-	uint64 frame_count = frame_counter;
-	
+	if(last_sec_frame_time.Read() > 1000)
+	{
+		last_sec_frame_time.Start();
+		prev_last_sec_frame_count = last_sec_frame_count;
+		last_sec_frame_count = 0;
+	}
+
+	float avg_fps = float(frame_count) / startup_time.ReadSec();
+	float seconds_since_startup = startup_time.ReadSec();
+	uint32 last_frame_ms = frame_time.Read();
+	uint32 frames_on_last_update = prev_last_sec_frame_count;
+
 	static char title[256];
-	sprintf_s(title, 256, "Av.FPS: %.2f Last Frame Ms: %02u Last sec frames: %i Last dt: %.3f Time since startup: %.3f Frame Count: %lu ",
+	sprintf_s(title, 256, "Av.FPS: %.2f Last Frame Ms: %u Last sec frames: %i Last dt: %.3f Time since startup: %.3f Frame Count: %lu ",
 			  avg_fps, last_frame_ms, frames_on_last_update, dt, seconds_since_startup, frame_count);
-
 	App->win->SetTitle(title);
+
+	if(capped_ms > 0 && last_frame_ms < capped_ms)
+	{
+		j1PerfTimer t;
+		SDL_Delay(capped_ms - last_frame_ms);
+		LOG("We waited for %d milliseconds and got back in %f", capped_ms - last_frame_ms, t.ReadMs());
+	}
 }
 
 // Call modules before each loop iteration
 bool j1App::PreUpdate()
 {
+	BROFILER_CATEGORY("PreUpdate", Profiler::Color::Green)
+
 	bool ret = true;
 	p2List_item<j1Module*>* item;
 	item = modules.start;
@@ -233,6 +246,8 @@ bool j1App::PreUpdate()
 // Call modules on each loop iteration
 bool j1App::DoUpdate()
 {
+	BROFILER_CATEGORY("Update", Profiler::Color::PaleGreen)
+
 	bool ret = true;
 	p2List_item<j1Module*>* item;
 	item = modules.start;
@@ -246,7 +261,7 @@ bool j1App::DoUpdate()
 			continue;
 		}
 
-		ret = item->data->Update();
+		ret = item->data->Update(dt);
 	}
 
 	return ret;
@@ -255,6 +270,8 @@ bool j1App::DoUpdate()
 // Call modules after each loop iteration
 bool j1App::PostUpdate()
 {
+	BROFILER_CATEGORY("PostUpdate", Profiler::Color::LightGreen)
+
 	bool ret = true;
 	p2List_item<j1Module*>* item;
 	j1Module* pModule = NULL;
@@ -276,9 +293,7 @@ bool j1App::PostUpdate()
 // Called before quitting
 bool j1App::CleanUp()
 {
-	// performance timer
-	j1PerfTimer performance_timer;
-
+	PERF_START(ptimer);
 	bool ret = true;
 	p2List_item<j1Module*>* item;
 	item = modules.end;
@@ -289,7 +304,7 @@ bool j1App::CleanUp()
 		item = item->prev;
 	}
 
-	LOG("cleanup took %f ms", performance_timer.ReadMs());
+	PERF_PEEK(ptimer);
 	return ret;
 }
 
@@ -317,7 +332,7 @@ const char* j1App::GetTitle() const
 // ---------------------------------------
 float j1App::GetDT() const
 {
-	return 0.0f;
+	return dt;
 }
 
 // ---------------------------------------
@@ -414,7 +429,7 @@ bool j1App::SavegameNow() const
 		data.save(stream);
 
 		// we are done, so write data to disk
-//		fs->Save(save_game.GetString(), stream.str().c_str(), stream.str().length());
+		//fs->Save(save_game.GetString(), stream.str().c_str(), stream.str().length());
 		LOG("... finished saving", save_game.GetString());
 	}
 	else
