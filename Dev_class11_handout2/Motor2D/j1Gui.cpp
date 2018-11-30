@@ -38,8 +38,6 @@ bool j1Gui::Start()
 	buttonup_texture = App->tex->Load(buttonup_filename.GetString());
 	buttondown_texture = App->tex->Load(buttondown_filename.GetString());
 
-	AddGUIButton(buttondown_texture,buttonup_texture, { 0, 0, 128, 23 }, { 100, 200 }, "BUTTON_TEST", TextPos::CENTERED);
-
 	return true;
 }
 
@@ -232,13 +230,6 @@ bool GUIBanner::PostUpdate()
 	if (text_texture != nullptr)
 		App->render->Blit(text_texture, textPosition.x, textPosition.y, NULL, 0.0F);
 
-	/*if (guiState == MouseState::ENTER)
-		LOG("Mouse Entered");
-	else if (guiState == MouseState::HOVER)
-		LOG("Mouse is hovering");
-	else if (guiState == MouseState::EXIT)
-		LOG("Mouse Exit");*/
-
 	return true;
 }
 
@@ -310,10 +301,12 @@ bool GUIButton::PreUpdate()
 	if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN && guiState == MouseState::HOVER)
 	{
 		image_texture = clicked_texture;
+		LOG("button clicked");
 	}
-	else if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP && guiState == MouseState::HOVER)
+	else if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP) // always unclick
 	{
 		image_texture = unclicked_texture;
+		LOG("button unclicked");
 	}
 
 	return true;

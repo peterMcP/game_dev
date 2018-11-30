@@ -173,13 +173,16 @@ public:
 
 	const SDL_Texture* GetAtlas() const;
 
+public:
+	SDL_Texture* buttonup_texture = nullptr;
+	SDL_Texture* buttondown_texture = nullptr;
 private:
 
 	SDL_Texture* atlas = nullptr;
 	p2SString atlas_file_name;
-	SDL_Texture* buttonup_texture = nullptr;
+	
 	p2SString buttonup_filename;
-	SDL_Texture* buttondown_texture = nullptr;
+	
 	p2SString buttondown_filename;
 
 	p2DynArray<GUIelement*> elements = NULL;

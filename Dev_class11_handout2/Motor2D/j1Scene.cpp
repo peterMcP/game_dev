@@ -47,11 +47,19 @@ bool j1Scene::Start()
 	// TODO 3: Create the banner (rect {485, 829, 328, 103}) and the text "Hello World"
 	// method thats adds a banner and optional text embedded
 	SDL_Color whiteColor = { 255,255,255,255 };
-	App->gui->AddGUIBanner((SDL_Texture*)App->gui->GetAtlas(), { 485, 829, 328, 103 }, { 300, 60 }, "Hello World", TextPos::UP);
+	App->gui->AddGUIBanner((SDL_Texture*)App->gui->GetAtlas(), { 485, 829, 328, 103 }, { 20, 60 }, "Banner with text on top", TextPos::UP);
+	App->gui->AddGUIBanner((SDL_Texture*)App->gui->GetAtlas(), { 485, 829, 328, 103 }, { 360, 160 }, "Banner with text on left", TextPos::LEFT);
+	App->gui->AddGUIBanner((SDL_Texture*)App->gui->GetAtlas(), { 485, 829, 328, 103 }, { 360, 60 }, "Banner with text centered", TextPos::CENTERED);
 	// only banner
-	App->gui->AddGUIBanner(nullptr, { 485, 829, 328, 103 }, { 300, 260 });
+	App->gui->AddGUIBanner(nullptr, { 485, 829, 328, 103 }, { 300, 280 });
 	// only text
-	App->gui->AddGUIText({ 100,20 }, "ONLY TEXT", whiteColor);
+	App->gui->AddGUIText({ 640,360 }, "<- Banner without text, this is a ONLY TEXT element", whiteColor);
+	// buttons
+	uint width, height = 0;
+	App->win->GetWindowSize(width, height);
+	App->gui->AddGUIButton(App->gui->buttondown_texture, App->gui->buttonup_texture, { 0, 0, 128, 23 }, { ((int)width * (int)App->win->GetScale()) / 2 - 64, 400 }, "BUTTON1", TextPos::CENTERED);
+	App->gui->AddGUIButton(App->gui->buttondown_texture, App->gui->buttonup_texture, { 0, 0, 128, 23 }, { ((int)width * (int)App->win->GetScale()) / 2  - 64, 423 }, "BUTTON2", TextPos::CENTERED);
+	App->gui->AddGUIButton(App->gui->buttondown_texture, App->gui->buttonup_texture, { 0, 0, 128, 23 }, { ((int)width * (int)App->win->GetScale()) / 2  - 64, 446 }, "BUTTON3", TextPos::CENTERED);
 
 
 	return true;
