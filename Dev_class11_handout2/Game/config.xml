@@ -20,6 +20,8 @@
 
   <gui>
     <atlas file="gui/atlas.png"/>
+	<button_up file="gui/UI-DialogBox-Button-Up.png"/>
+	<button_down file="gui/UI-DialogBox-Button-Down.png"/>
   </gui>
 
   <map>

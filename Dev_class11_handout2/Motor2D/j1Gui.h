@@ -83,7 +83,7 @@ public:
 	bool PreUpdate();
 	bool PostUpdate();
 
-private:
+protected:
 
 	SDL_Texture* image_texture = nullptr;
 	SDL_Texture* text_texture = nullptr; // text if the image has any text to show
@@ -118,7 +118,17 @@ class GUIButton : public GUIBanner//public GUIelement
 public:
 
 	//GUIButton();
-	GUIButton(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetPos = TextPos::CENTERED);
+	GUIButton(SDL_Texture* click_texture, SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetPos = TextPos::CENTERED);
+
+	bool PreUpdate();
+
+private:
+
+private:
+	SDL_Texture* clicked_texture = nullptr;
+	SDL_Texture* unclicked_texture = nullptr;
+	//Animation on guiState::HOVER
+	// 
 
 };
 
@@ -158,15 +168,19 @@ public:
 	// Gui creation functions
 	GUIBanner* AddGUIBanner(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetTextPos = TextPos::CENTERED);
 	GUIText* AddGUIText(const iPoint& position, const char* text, SDL_Color color);
-	GUIButton* AddGUIButton(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetTextPos = TextPos::CENTERED);
+	GUIButton* AddGUIButton(SDL_Texture* clickedTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetTextPos = TextPos::CENTERED);
 
 
 	const SDL_Texture* GetAtlas() const;
 
 private:
 
-	SDL_Texture* atlas;
+	SDL_Texture* atlas = nullptr;
 	p2SString atlas_file_name;
+	SDL_Texture* buttonup_texture = nullptr;
+	p2SString buttonup_filename;
+	SDL_Texture* buttondown_texture = nullptr;
+	p2SString buttondown_filename;
 
 	p2DynArray<GUIelement*> elements = NULL;
 	//GUIelement* elements[10] = { nullptr };

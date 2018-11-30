@@ -25,6 +25,8 @@ bool j1Gui::Awake(pugi::xml_node& conf)
 	bool ret = true;
 
 	atlas_file_name = conf.child("atlas").attribute("file").as_string("");
+	buttonup_filename = conf.child("button_up").attribute("file").as_string("");
+	buttondown_filename = conf.child("button_down").attribute("file").as_string("");
 
 	return ret;
 }
@@ -33,8 +35,10 @@ bool j1Gui::Awake(pugi::xml_node& conf)
 bool j1Gui::Start()
 {
 	atlas = App->tex->Load(atlas_file_name.GetString());
+	buttonup_texture = App->tex->Load(buttonup_filename.GetString());
+	buttondown_texture = App->tex->Load(buttondown_filename.GetString());
 
-	AddGUIButton((SDL_Texture*)App->gui->GetAtlas(), { 485, 829, 328, 103 }, { 100, 200 }, "Hello World", TextPos::CENTERED);
+	AddGUIButton(buttondown_texture,buttonup_texture, { 0, 0, 128, 23 }, { 100, 200 }, "BUTTON_TEST", TextPos::CENTERED);
 
 	return true;
 }
@@ -79,15 +83,15 @@ void GUIelement::SetMouseState(MouseEvent event)
 	switch (event)
 	{
 	case MouseEvent::ENTER:
-		if (guiState == MouseState::DONTCARE || guiState == MouseState::EXIT)
+		if (guiState == MouseState::ENTER)
+		{
+		LOG("Mouse is hovering");
+		guiState = MouseState::HOVER;
+		}
+		else if (guiState == MouseState::DONTCARE || guiState == MouseState::EXIT)
 		{
 			LOG("Mouse entered on boundaries");
 			guiState = MouseState::ENTER;
-		}
-		else if (guiState == MouseState::ENTER)
-		{
-			LOG("Mouse is hovering");
-			guiState = MouseState::HOVER;
 		}
 		break;
 	case MouseEvent::EXIT:
@@ -159,10 +163,10 @@ GUIText* j1Gui::AddGUIText(const iPoint& position, const char* text, SDL_Color c
 	return ret;
 }
 
-GUIButton* j1Gui::AddGUIButton(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetTextPos)
+GUIButton* j1Gui::AddGUIButton(SDL_Texture* clickTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetTextPos)
 {
 	GUIButton* ret = nullptr;
-	ret = new GUIButton(texture, rect, position, text, targetTextPos);
+	ret = new GUIButton(clickTexture,unclickTexture, rect, position, text, targetTextPos);
 	elements.PushBack(ret);
 	ret->index = elements.Count();
 	
@@ -295,8 +299,22 @@ bool GUIText::PostUpdate()
 	return true;
 }
 
-GUIButton::GUIButton(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetPos)
-	: GUIBanner(texture, rect, position, text, targetPos)
+GUIButton::GUIButton(SDL_Texture* click_texture,SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetPos)
+	: clicked_texture(click_texture), unclicked_texture(unclick_texture), GUIBanner(unclick_texture, rect, position, text, targetPos)
 {
 	//this->position = position;
+}
+
+bool GUIButton::PreUpdate()
+{
+	if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN && guiState == MouseState::HOVER)
+	{
+		image_texture = clicked_texture;
+	}
+	else if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP && guiState == MouseState::HOVER)
+	{
+		image_texture = unclicked_texture;
+	}
+
+	return true;
 }
