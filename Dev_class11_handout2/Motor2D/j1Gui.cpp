@@ -64,7 +64,7 @@ bool j1Gui::PreUpdate()
 		}
 		else
 		{
-			if(e->guiState != GUIelement::MouseState::EXIT)
+			if(e->guiState != GUIelement::MouseState::EXIT && e->guiState != GUIelement::MouseState::CLICK)
 				e->SetMouseState(GUIelement::MouseEvent::EXIT);
 		}
 		// ------------------------------------------------------
@@ -302,11 +302,13 @@ bool GUIButton::PreUpdate()
 	{
 		image_texture = clicked_texture;
 		LOG("button clicked");
+		guiState = MouseState::CLICK;
 	}
-	else if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP) // always unclick
+	else if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP && guiState == MouseState::CLICK) // always unclick
 	{
 		image_texture = unclicked_texture;
 		LOG("button unclicked");
+		guiState = MouseState::DONTCARE;
 	}
 
 	return true;
