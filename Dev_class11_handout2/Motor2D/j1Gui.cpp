@@ -25,8 +25,17 @@ bool j1Gui::Awake(pugi::xml_node& conf)
 	bool ret = true;
 
 	atlas_file_name = conf.child("atlas").attribute("file").as_string("");
+	// button textures || if we put all of them on an atlas, is needed a fast code adaptation, we must think it good
 	buttonup_filename = conf.child("button_up").attribute("file").as_string("");
 	buttondown_filename = conf.child("button_down").attribute("file").as_string("");
+	buttonhighlight_filename = conf.child("button_hover").attribute("file").as_string("");
+	// checkbox textures
+	checkbox_up_filename = conf.child("checkbox_up").attribute("file").as_string("");
+	checkbox_down_filename = conf.child("checkbox_down").attribute("file").as_string("");
+	checkbox_highlight_filename = conf.child("checkbox_highlight").attribute("file").as_string("");
+	checkbox_check_filename = conf.child("checkbox_check").attribute("file").as_string("");
+	//checkbox_check_locked_filename = conf.child("checkbox_check_locked").attribute("file").as_string("");
+
 
 	return ret;
 }
@@ -35,8 +44,18 @@ bool j1Gui::Awake(pugi::xml_node& conf)
 bool j1Gui::Start()
 {
 	atlas = App->tex->Load(atlas_file_name.GetString());
+	// buttons
 	buttonup_texture = App->tex->Load(buttonup_filename.GetString());
 	buttondown_texture = App->tex->Load(buttondown_filename.GetString());
+	buttonhighlight_texture = App->tex->Load(buttonhighlight_filename.GetString());
+	// sets blend mode additive to highlight texture
+	SDL_SetTextureBlendMode(buttonhighlight_texture, SDL_BLENDMODE_ADD);
+	// checkbox
+	checkbox_up_texture = App->tex->Load(checkbox_up_filename.GetString());
+	checkbox_down_texture = App->tex->Load(checkbox_down_filename.GetString());
+	checkbox_highlight_texture = App->tex->Load(checkbox_highlight_filename.GetString());
+	checkbox_check_texture = App->tex->Load(checkbox_check_filename.GetString());
+	SDL_SetTextureBlendMode(checkbox_highlight_texture, SDL_BLENDMODE_ADD);
 
 	return true;
 }
@@ -121,7 +140,12 @@ bool j1Gui::CleanUp()
 {
 	LOG("Freeing GUI");
 
-	elements.Clear();
+	App->tex->UnLoad(atlas);
+	App->tex->UnLoad(buttonup_texture);
+	App->tex->UnLoad(buttondown_texture);
+	App->tex->UnLoad(buttonhighlight_texture);
+
+	elements.Clear(); // dynarray clears itselfs when destructor
 
 	return true;
 }
@@ -161,13 +185,23 @@ GUIText* j1Gui::AddGUIText(const iPoint& position, const char* text, SDL_Color c
 	return ret;
 }
 
-GUIButton* j1Gui::AddGUIButton(SDL_Texture* clickTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetTextPos)
+GUIButton* j1Gui::AddGUIButton(SDL_Texture* clickTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetTextPos, SDL_Texture* onMouseTex)
 {
 	GUIButton* ret = nullptr;
-	ret = new GUIButton(clickTexture,unclickTexture, rect, position, text, targetTextPos);
+	ret = new GUIButton(clickTexture,unclickTexture, rect, position, text, targetTextPos, onMouseTex);
 	elements.PushBack(ret);
 	ret->index = elements.Count();
 	
+	return ret;
+}
+
+GUICheckBox* j1Gui::AddGUICheckBox(SDL_Texture* clickTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetTextPos, SDL_Texture* onMouseTex, SDL_Texture* checkTex)
+{
+	GUICheckBox* ret = nullptr;
+	ret = new GUICheckBox(clickTexture, unclickTexture, rect, position, text, targetTextPos, onMouseTex, checkTex);
+	elements.PushBack(ret);
+	ret->index = elements.Count();
+
 	return ret;
 }
 
@@ -192,7 +226,8 @@ bool GUIelement::CleanUp()
 
 // 
 
-GUIBanner::GUIBanner(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetTextPos) : image_texture(texture), section(rect), GUIelement(position)
+GUIBanner::GUIBanner(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetTextPos, SDL_Texture* onMouseTex) : 
+	image_texture(texture), onMouse_texture(onMouseTex), section(rect), GUIelement(position)
 {
 	if (texture == nullptr) image_texture = (SDL_Texture*)App->gui->GetAtlas();
 
@@ -227,7 +262,9 @@ bool GUIBanner::PreUpdate()
 bool GUIBanner::PostUpdate()
 {
 	App->render->Blit(image_texture, position.x, position.y, &section, 0.0F);
-	if (text_texture != nullptr)
+	if(onMouse_texture != nullptr && guiState == MouseState::HOVER) // if the banner has declared a on hover texture and mouse is hovering it
+		App->render->Blit(onMouse_texture, position.x, position.y, NULL, 0.0F);
+	if (text_texture != nullptr) // text always on top
 		App->render->Blit(text_texture, textPosition.x, textPosition.y, NULL, 0.0F);
 
 	return true;
@@ -290,11 +327,10 @@ bool GUIText::PostUpdate()
 	return true;
 }
 
-GUIButton::GUIButton(SDL_Texture* click_texture,SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetPos)
-	: clicked_texture(click_texture), unclicked_texture(unclick_texture), GUIBanner(unclick_texture, rect, position, text, targetPos)
-{
-	//this->position = position;
-}
+// GUIButton relative ============================================
+
+GUIButton::GUIButton(SDL_Texture* click_texture,SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetPos, SDL_Texture* hoverTex)
+	: clicked_texture(click_texture), unclicked_texture(unclick_texture), hover_texture(hoverTex), GUIBanner(unclick_texture, rect, position, text, targetPos, hoverTex) {}
 
 bool GUIButton::PreUpdate()
 {
@@ -313,3 +349,36 @@ bool GUIButton::PreUpdate()
 
 	return true;
 }
+// ===============================================================
+
+// CHECKBOX relative =============================================
+
+GUICheckBox::GUICheckBox(SDL_Texture* click_texture, SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text, TextPos targetPos, SDL_Texture* hoverTex, SDL_Texture* checkTex)
+	: checkTexture(checkTex), GUIButton(click_texture, unclick_texture, rect, position, text, targetPos, hoverTex)
+{
+
+}
+
+bool GUICheckBox::PreUpdate()
+{
+	GUIButton::PreUpdate(); // calls overrided preUpdate from parent too
+
+	if (App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP && guiState == MouseState::DONTCARE)
+	{
+		active = !active;
+	}
+
+	return true;
+}
+
+bool GUICheckBox::PostUpdate()
+{
+	GUIBanner::PostUpdate(); // GUIButton doesnt had postupdate yet, if we need it, call parent of button(guibanner) on button postupdate, and here the button
+
+	if (active && checkTexture != nullptr)
+		App->render->Blit(checkTexture, position.x, position.y, NULL, 0.0F);
+
+	return true;
+}
+
+

@@ -10,11 +10,13 @@
 #define BLUE (SDL_Color){0,0,255}
 
 // TODO 1: Create your structure of classes
+
+// maybe we need a structures of predefined elements somewhere on xml and creates the guielements using it with simple gui methods
 class GUIelement
 {
 public:
 
-	enum MouseState // TODO: find where to fit getmouseclick
+	enum MouseState
 	{
 		DONTCARE = 0,
 		ENTER,
@@ -76,7 +78,8 @@ public:
 		RIGHT
 	};*/
 
-	GUIBanner(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetPos = TextPos::CENTERED);
+	// maybe we need more different possibilites constructors
+	GUIBanner(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetPos = TextPos::CENTERED, SDL_Texture* onMouseTex = nullptr);
 
 public:
 
@@ -87,6 +90,7 @@ protected:
 
 	SDL_Texture* image_texture = nullptr;
 	SDL_Texture* text_texture = nullptr; // text if the image has any text to show
+	SDL_Texture* onMouse_texture = nullptr; // maybe the banner can have a hover texture or animation too
 	SDL_Rect section; // rect of the target "atlas" texture
 	iPoint textPosition; // position of the text, if has any
 
@@ -117,24 +121,36 @@ class GUIButton : public GUIBanner//public GUIelement
 {
 public:
 
+	// maybe we need more different possibilites constructors
 	//GUIButton();
-	GUIButton(SDL_Texture* click_texture, SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetPos = TextPos::CENTERED);
+	GUIButton(SDL_Texture* click_texture, SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetPos = TextPos::CENTERED, SDL_Texture* hoverTex = nullptr);
 
 	bool PreUpdate();
 
 private:
 
-private:
+protected:
 	SDL_Texture* clicked_texture = nullptr;
 	SDL_Texture* unclicked_texture = nullptr;
+	SDL_Texture* hover_texture = nullptr;
 	//Animation on guiState::HOVER
 	// 
 
 };
 
-class GUICheckBox : public GUIBanner
+class GUICheckBox : public GUIButton
 {
+public:
 
+	GUICheckBox(SDL_Texture* click_texture, SDL_Texture* unclick_texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetPos = TextPos::CENTERED, SDL_Texture* hoverTex = nullptr, SDL_Texture* checkTex = nullptr);
+
+	bool PreUpdate();
+	bool PostUpdate();
+
+private:
+
+	bool active = false;
+	SDL_Texture* checkTexture = nullptr;
 };
 
 
@@ -168,22 +184,38 @@ public:
 	// Gui creation functions
 	GUIBanner* AddGUIBanner(SDL_Texture* texture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetTextPos = TextPos::CENTERED);
 	GUIText* AddGUIText(const iPoint& position, const char* text, SDL_Color color);
-	GUIButton* AddGUIButton(SDL_Texture* clickedTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetTextPos = TextPos::CENTERED);
-
+	GUIButton* AddGUIButton(SDL_Texture* clickedTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetTextPos = TextPos::CENTERED, SDL_Texture* onMouseTex = nullptr);
+	GUICheckBox* AddGUICheckBox(SDL_Texture* clickedTexture, SDL_Texture* unclickTexture, const SDL_Rect& rect, const iPoint& position, const char* text = nullptr, TextPos targetTextPos = TextPos::CENTERED, SDL_Texture* onMouseTex = nullptr, SDL_Texture* checkTex = nullptr);
 
 	const SDL_Texture* GetAtlas() const;
 
 public:
+	// TODO: maybe adds a structure to pack all needed textures for specific button type
+	// general buttons textures
 	SDL_Texture* buttonup_texture = nullptr;
 	SDL_Texture* buttondown_texture = nullptr;
+	SDL_Texture* buttonhighlight_texture = nullptr;
+	// general checkboxes textures
+	SDL_Texture* checkbox_up_texture = nullptr;
+	SDL_Texture* checkbox_down_texture = nullptr;
+	SDL_Texture* checkbox_highlight_texture = nullptr;
+	SDL_Texture* checkbox_check_texture = nullptr;
+
 private:
 
 	SDL_Texture* atlas = nullptr;
 	p2SString atlas_file_name;
-	
+	// pass a node or save strings, if we delete a document node after awake phase
+	// buttons filenames
 	p2SString buttonup_filename;
-	
 	p2SString buttondown_filename;
+	p2SString buttonhighlight_filename;
+	// checkbox filenames
+	p2SString checkbox_up_filename;
+	p2SString checkbox_down_filename;
+	p2SString checkbox_highlight_filename;
+	p2SString checkbox_check_filename;
+	//p2SString checkbox_check_locked_filename;
 
 	p2DynArray<GUIelement*> elements = NULL;
 	//GUIelement* elements[10] = { nullptr };
